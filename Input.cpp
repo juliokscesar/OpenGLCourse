@@ -83,6 +83,9 @@ void Input::Init(GLFWwindow* window)
 
 float Input::GetMouseXOffset() noexcept
 {
+    if (mouseTracker.bFirst)
+        return 0.0f;
+
     float offset = mouseTracker.xOffset;
     mouseTracker.xOffset = 0.0f;
     return offset;
@@ -90,6 +93,9 @@ float Input::GetMouseXOffset() noexcept
 
 float Input::GetMouseYOffset() noexcept
 {
+    if (mouseTracker.bFirst)
+        return 0.0f;
+
     float offset = mouseTracker.yOffset;
     mouseTracker.yOffset = 0.0f;
     return offset;

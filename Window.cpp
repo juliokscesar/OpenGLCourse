@@ -129,30 +129,58 @@ void Window::MainLoop()
 
 
     // ===== CUBE ======
-    float cubeVertices[] = {
-        // positions         // texcoords
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // front left bottom
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // front right bottom
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // front right top
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // front left top
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // back left top
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // back right top
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // back right bottom
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f  // back left bottom
+    float cubeVertices[]={
+        // positions        // texcoords (2D TEXTURE)
+        // BACK
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // A 0 
+         0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // B 1 
+         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // C 2 
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // D 3 
+
+        // RIGHT
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // B 4 
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // C 5 
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // F 6 
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // G 7 
+
+        // FRONT
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // E 8 
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // F 9 
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // G 10 
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // H 11 
+
+        // TOP
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // C 12 
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // D 13 
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // E 14 
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // F 15 
+
+        // LEFT
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // A 16
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // D 17
+        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // E 18
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // H 19
+
+        // BOTTOM
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // A 20 
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // B 21 
+         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // G 22 
+        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f  // H 23
     };
+
     unsigned int cubeIndices[] = {
-        0,1,2,
-        2,3,0,
-        0,7,4,
-        4,0,3,
-        3,4,5,
-        5,3,2,
-        2,5,6,
-        6,2,1,
-        1,6,0,
-        0,6,7,
-        7,4,5,
-        5,7,6
+        0, 1, 3,
+        3, 1, 2,
+        5, 4, 7,
+        7, 5, 6,
+        9, 10, 11,
+        11, 9, 8,
+        14, 15, 12,
+        12, 14, 13,
+        17, 18, 16,
+        16, 18, 19,
+        23, 20, 21,
+        21, 23, 22
     };
 
     StaticMesh cubeMesh(
@@ -258,13 +286,19 @@ void Window::MainLoop()
 
         containerTex.Activate();
         romaTex.Activate();
-        for (auto& e_cube : cubes)
+        for (int i = 0; i < 10; i++)
         {
-            e_cube.Mesh.GetShader().SetMat4("model", e_cube.Transform.GetTransformMatrix());
-            e_cube.Mesh.GetShader().SetMat4("view", camera.GetLookAtMatrix());
-            e_cube.Mesh.GetShader().SetMat4("projection", projection);
+            float time = (float)glfwGetTime();
+            float rotX = 180.0f * std::sin(time * (i+1));
+            float rotY = 90.0f * std::sin(time) * std::cos(time);
+            float rotZ = 180.0f * std::cos(time * (i+1));
+            cubes[i].Transform.SetRotation(glm::vec3(rotX, rotY, rotZ));
 
-            e_cube.Mesh.Draw();
+            cubes[i].Mesh.GetShader().SetMat4("model", cubes[i].Transform.GetTransformMatrix());
+            cubes[i].Mesh.GetShader().SetMat4("view", camera.GetLookAtMatrix());
+            cubes[i].Mesh.GetShader().SetMat4("projection", projection);
+
+            cubes[i].Draw();
         }
 
         glfwSwapBuffers(m_glfwWindow);

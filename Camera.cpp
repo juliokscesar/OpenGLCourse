@@ -29,10 +29,6 @@ void Camera::Update(float deltaTime)
     float mouseXOffset = Input::GetMouseXOffset() * Sensitivity;
     float mouseYOffset = -1.0f * Input::GetMouseYOffset() * Sensitivity;
 
-    // avoid making calculations if one offset is 0
-    if (!mouseXOffset && !mouseYOffset)
-        return;
-
     m_yaw   += mouseXOffset;
     m_pitch += mouseYOffset;
 

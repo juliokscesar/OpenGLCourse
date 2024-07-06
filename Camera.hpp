@@ -6,7 +6,13 @@ class Camera
 {
 public:
     Camera()
-        : Transform(), m_front(0.0f, 0.0f, 1.0f), m_up(0.0f, 1.0f, 0.0f), Speed(1.0f), Sensitivity(1.0f) {}
+        :   Transform(), 
+            m_front(0.0f, 0.0f, 1.0f), 
+            m_up(0.0f, 1.0f, 0.0f), 
+            m_yaw(-90.0f),
+            m_pitch(0.0f),
+            Speed(1.0f), 
+            Sensitivity(1.0f) {}
 
     void Update(float deltaTime);
 
