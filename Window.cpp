@@ -57,12 +57,10 @@ void Window::Init()
     // set callback for viewport resize
     glfwSetFramebufferSizeCallback(m_glfwWindow, framebufferResizeCallback);
 
-    // TODO: set keyboard input callback
-
     // hide cursor and capture it (to capture mouse movement)
     glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     
-    // TODO: set mouse callback
+    // Init mouse and keyboard callbacks
     Input::Init(m_glfwWindow);
 
     // enable depth testing
@@ -157,7 +155,6 @@ void Window::MainLoop()
         5,7,6
     };
 
-    // TODO: write cube shaders
     StaticMesh cubeMesh(
         cubeVertices, 
         sizeof(cubeVertices), 
@@ -176,7 +173,6 @@ void Window::MainLoop()
     cube.Mesh.GetShader().SetInt("texture0", 0);
     cube.Mesh.GetShader().SetInt("texture1", 1);
     cube.Mesh.GetShader().SetFloat("mixProportion", 0.5f);
-
 
     // ===== END CUBE ======
 
@@ -205,11 +201,30 @@ void Window::MainLoop()
 
     // ===== CAMERA =====
 
-    // TODO: implement mouse movement
     Camera camera;
     camera.Transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
 
     // ===== END CAMERA =====
+
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f), 
+        glm::vec3( 2.0f,  5.0f, -15.0f), 
+        glm::vec3(-1.5f, -2.2f, -2.5f),  
+        glm::vec3(-3.8f, -2.0f, -12.3f),  
+        glm::vec3( 2.4f, -0.4f, -3.5f),  
+        glm::vec3(-1.7f,  3.0f, -7.5f),  
+        glm::vec3( 1.3f, -2.0f, -2.5f),  
+        glm::vec3( 1.5f,  2.0f, -2.5f), 
+        glm::vec3( 1.5f,  0.2f, -1.5f), 
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+
+    Entity cubes[10];
+    for (int i = 0; i < 10; i++)
+    {
+        cubes[i] = cube;
+        cubes[i].Transform.SetPosition(cubePositions[i]);
+    }
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
@@ -239,24 +254,18 @@ void Window::MainLoop()
         //atlasTex.Activate();
         //triangle.Draw();
 
-        cube.Mesh.GetShader().SetMat4("model", cube.Transform.GetTransformMatrix());
-
         camera.Update(deltaTime);
-        cube.Mesh.GetShader().SetMat4("view", camera.GetLookAtMatrix());
-        cube.Mesh.GetShader().SetMat4("projection", projection);
-
-        float time = (float)glfwGetTime();
-        float r = std::abs(std::sin(time * 2.0f));
-        float g = std::abs(std::cos(time * 0.5f));
-        float b = std::abs(std::cos(time) * std::sin(time));
-        glm::vec3 color(r, g, b);
-        cube.Mesh.GetShader().SetVec3("customColor", color);
-
-        cube.Transform.SetRotation(glm::vec3(90.0f * std::sin(time), 45.0f * std::cos(time), 180.0f * std::sin(time*2.0f)));
 
         containerTex.Activate();
         romaTex.Activate();
-        cube.Draw();
+        for (auto& e_cube : cubes)
+        {
+            e_cube.Mesh.GetShader().SetMat4("model", e_cube.Transform.GetTransformMatrix());
+            e_cube.Mesh.GetShader().SetMat4("view", camera.GetLookAtMatrix());
+            e_cube.Mesh.GetShader().SetMat4("projection", projection);
+
+            e_cube.Mesh.Draw();
+        }
 
         glfwSwapBuffers(m_glfwWindow);
         glfwPollEvents();

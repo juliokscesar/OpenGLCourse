@@ -7,6 +7,9 @@
 class StaticMesh
 {
 public:
+    StaticMesh()
+        : m_VBO(0), m_VAO(0), m_EBO(0), m_vertices(0), m_useIndexedDrawing(false), m_shader() {}
+
     StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices, const std::string& vertexPath, const std::string& fragPath);
     StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices, GLuint indices[], GLsizeiptr indSize, const std::string& vertexPath, const std::string& fragPath);
 

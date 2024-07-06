@@ -13,8 +13,19 @@
 static int keysActionMods[N_KEYS][2];
 static bool keysState[N_KEYS];
 
-// USE A KEY BUFFER THAT UPDATES WHEN A KEY IS PRESSED OR RELEASED,
-// THEN SET AN ARRAY WITH KEYS TO LISTEN, TO AVOID LOOPING EVERY FRAME
+struct MouseTracker
+{
+    float lastX = 0.0f;
+    float lastY = 0.0f;
+    float currX = 0.0f;
+    float currY = 0.0f;
+
+    float xOffset = 0.0f;
+    float yOffset = 0.0f;
+
+    bool bFirst = true;
+};
+static MouseTracker mouseTracker;
 
 void keyInputCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -25,6 +36,33 @@ void keyInputCallback(GLFWwindow* window, int key, int scancode, int action, int
         keysState[key] = true;
     else if (action == GLFW_RELEASE)
         keysState[key] = false;
+}
+
+void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (mouseTracker.bFirst)
+    {
+        mouseTracker.lastX = static_cast<float>(xpos);
+        mouseTracker.lastY = static_cast<float>(ypos);
+        mouseTracker.currX = mouseTracker.lastX;
+        mouseTracker.currY = mouseTracker.lastY;
+
+        mouseTracker.xOffset = 0.0f;
+        mouseTracker.yOffset = 0.0f;
+
+        mouseTracker.bFirst = false;
+
+        return;
+    }
+
+    mouseTracker.lastX = mouseTracker.currX;
+    mouseTracker.lastY = mouseTracker.currY;
+
+    mouseTracker.currX = static_cast<float>(xpos);
+    mouseTracker.currY = static_cast<float>(ypos);
+
+    mouseTracker.xOffset = mouseTracker.currX - mouseTracker.lastX;
+    mouseTracker.yOffset = mouseTracker.currY - mouseTracker.lastY;
 }
 
 KeyAction Input::GetKeyGLFWAction(int key) noexcept
@@ -40,5 +78,19 @@ bool Input::GetKeyState(int key) noexcept
 void Input::Init(GLFWwindow* window)
 {
     glfwSetKeyCallback(window, keyInputCallback);
+    glfwSetCursorPosCallback(window, mouseMoveCallback);
 }
 
+float Input::GetMouseXOffset() noexcept
+{
+    float offset = mouseTracker.xOffset;
+    mouseTracker.xOffset = 0.0f;
+    return offset;
+}
+
+float Input::GetMouseYOffset() noexcept
+{
+    float offset = mouseTracker.yOffset;
+    mouseTracker.yOffset = 0.0f;
+    return offset;
+}

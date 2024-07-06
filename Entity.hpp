@@ -13,8 +13,13 @@
 class Entity
 {
 public:
+    Entity()
+        : Mesh(), Transform(), m_visible(false) {}
+
     Entity(const StaticMesh& mesh)
         : Mesh(mesh), Transform(), m_visible(true) {}
+
+    Entity(const Entity& other);
 
     StaticMesh Mesh;
     TransformComponent Transform;

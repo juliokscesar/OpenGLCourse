@@ -22,4 +22,7 @@ namespace Input
     void AddKeyListener(int key);
 
     void AddKeyListener(int keys[], size_t n);
+
+    float GetMouseXOffset() noexcept;
+    float GetMouseYOffset() noexcept;
 };
