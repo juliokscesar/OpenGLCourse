@@ -1,0 +1,1 @@
+g++ -o prog ext/glad/src/glad.c main.cpp Shader.cpp Window.cpp Input.cpp StaticMesh.cpp Texture2D.cpp Entity.cpp TransformComponent.cpp Camera.cpp -Iext/ -Iext/glad/include/ -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl
