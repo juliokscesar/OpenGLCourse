@@ -13,9 +13,13 @@
 #include "Entity.hpp"
 #include "Camera.hpp"
 
+
+
+static bool g_bResized = false;
 void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
+    g_bResized = true;
 }
 
 void Window::Init()
@@ -59,7 +63,7 @@ void Window::Init()
     glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     
     // TODO: set mouse callback
-    glfwSetKeyCallback(m_glfwWindow, Input::GetInputCallback());
+    Input::Init(m_glfwWindow);
 
     // enable depth testing
     glEnable(GL_DEPTH_TEST);
@@ -218,9 +222,10 @@ void Window::MainLoop()
         glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        this->updateWindowProperties();
+        if (g_bResized)
+            this->updateWindowProperties();
 
-        if (Input::GetKey(GLFW_KEY_ESCAPE) == KeyAction::PRESS)
+        if (Input::GetKeyState(GLFW_KEY_ESCAPE))
         {
             glfwSetWindowShouldClose(m_glfwWindow, true);
         }
@@ -265,4 +270,6 @@ void Window::updateWindowProperties()
     int width = 0, height = 0;
     glfwGetWindowSize(m_glfwWindow, &width, &height);
     m_width = width, m_height = height;
+
+    g_bResized = false;
 }

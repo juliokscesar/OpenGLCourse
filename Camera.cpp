@@ -7,13 +7,16 @@
 void Camera::Update(float deltaTime)
 {
     float speed = Speed * deltaTime;
-    if (Input::GetKey(GLFW_KEY_W) == KeyAction::PRESS)
+    if (Input::GetKeyState(GLFW_KEY_W))
         Transform.Translate(m_front * speed);
-    if (Input::GetKey(GLFW_KEY_S) == KeyAction::PRESS)
+
+    if (Input::GetKeyState(GLFW_KEY_S))
         Transform.Translate(-1.0f * m_front * speed);
-    if (Input::GetKey(GLFW_KEY_D) == KeyAction::PRESS)
+
+    if (Input::GetKeyState(GLFW_KEY_D))
         Transform.Translate(glm::normalize(glm::cross(m_front, m_up)) * speed);
-    if (Input::GetKey(GLFW_KEY_A) == KeyAction::PRESS)
+        
+    if (Input::GetKeyState(GLFW_KEY_A))
         Transform.Translate(-1.0f * glm::normalize(glm::cross(m_front, m_up)) * speed);
 }
 

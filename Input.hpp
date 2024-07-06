@@ -6,14 +6,20 @@ using glfwKeyCallbackFunc = void(*)(GLFWwindow* window, int key, int scancode, i
 
 enum class KeyAction
 {
-    PRESS = GLFW_PRESS,
+    PRESS   = GLFW_PRESS,
     RELEASE = GLFW_RELEASE,
-    REPEAT = GLFW_REPEAT
+    REPEAT  = GLFW_REPEAT
 };
 
 namespace Input
 {
-    KeyAction GetKey(uint32_t key) noexcept;
+    KeyAction GetKeyGLFWAction(int key) noexcept;
 
-    glfwKeyCallbackFunc GetInputCallback();
+    bool GetKeyState(int key) noexcept;
+
+    void Init(GLFWwindow* window);
+
+    void AddKeyListener(int key);
+
+    void AddKeyListener(int keys[], size_t n);
 };
