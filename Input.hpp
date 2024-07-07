@@ -25,4 +25,5 @@ namespace Input
 
     float GetMouseXOffset() noexcept;
     float GetMouseYOffset() noexcept;
+    float GetMouseScroll()  noexcept;
 };

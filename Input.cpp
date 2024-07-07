@@ -24,10 +24,12 @@ struct MouseTracker
     float yOffset = 0.0f;
 
     bool bFirst = true;
+
+    float scrollOffset = 0.0f;
 };
 static MouseTracker mouseTracker;
 
-void keyInputCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void keyInputCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     keysActionMods[key][ACTION] = action;
     keysActionMods[key][MODS] = mods;
@@ -38,7 +40,7 @@ void keyInputCallback(GLFWwindow* window, int key, int scancode, int action, int
         keysState[key] = false;
 }
 
-void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos)
+static void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos)
 {
     if (mouseTracker.bFirst)
     {
@@ -65,6 +67,11 @@ void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos)
     mouseTracker.yOffset = mouseTracker.currY - mouseTracker.lastY;
 }
 
+static void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    mouseTracker.scrollOffset = static_cast<float>(yoffset);
+}
+
 KeyAction Input::GetKeyGLFWAction(int key) noexcept
 {
     return static_cast<KeyAction>(keysActionMods[key][ACTION]);
@@ -79,6 +86,7 @@ void Input::Init(GLFWwindow* window)
 {
     glfwSetKeyCallback(window, keyInputCallback);
     glfwSetCursorPosCallback(window, mouseMoveCallback);
+    glfwSetScrollCallback(window, mouseScrollCallback);
 }
 
 float Input::GetMouseXOffset() noexcept
@@ -99,4 +107,11 @@ float Input::GetMouseYOffset() noexcept
     float offset = mouseTracker.yOffset;
     mouseTracker.yOffset = 0.0f;
     return offset;
+}
+
+float Input::GetMouseScroll() noexcept
+{
+    float scroll = mouseTracker.scrollOffset;
+    mouseTracker.scrollOffset = 0.0f;
+    return scroll;
 }

@@ -6,6 +6,7 @@
 
 void Camera::Update(float deltaTime)
 {
+    // ===== WASD MOVEMENT =====
     float speed = Speed * deltaTime;
     if (Input::GetKeyState(GLFW_KEY_W))
         Transform.Translate(m_front * speed);
@@ -24,7 +25,10 @@ void Camera::Update(float deltaTime)
     
     if (Input::GetKeyState(GLFW_KEY_LEFT_SHIFT))
         Transform.Translate(m_up * speed * -1.0f);
+    // ===== END WASD MOVEMENT =====
 
+
+    // ===== MOUSE MOVEMENT LOOK =====
     // Pitch: rotate around X-axis, Yaw: rotate around Y-axis
     float mouseXOffset = Input::GetMouseXOffset() * Sensitivity;
     float mouseYOffset = -1.0f * Input::GetMouseYOffset() * Sensitivity;
@@ -47,6 +51,18 @@ void Camera::Update(float deltaTime)
     direction.y = std::sin(glm::radians(m_pitch));
     direction.z = std::sin(glm::radians(m_yaw)) * std::cos(glm::radians(m_pitch));
     m_front = glm::normalize(direction);
+    // ===== END MOUSE MOVEMENT LOOK =====
+
+    // ===== ZOOM =====
+    float scroll = Input::GetMouseScroll();
+    if (scroll)
+        FOV -= scroll; // subtract because otherwise the scrolling is inverted
+    
+    // Clamp FOV to 1.0 and 45.0
+    if (FOV < 1.0f)
+        FOV = 1.0f;
+    else if (FOV > 45.0f)
+        FOV = 45.0f;
 }
 
 glm::mat4 Camera::GetLookAtMatrix() const noexcept

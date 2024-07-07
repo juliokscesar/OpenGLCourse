@@ -206,6 +206,13 @@ void Window::MainLoop()
 
     // TODO: Figure out a way to take this 3D setup to another place
     // (maybe a Scene/World class? Including a camera, world origin (for model transform) etc)
+    // ===== CAMERA =====
+
+    Camera camera;
+    camera.Transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+
+    // ===== END CAMERA =====
+    
     // ===== 3D SETUP ======
 
     // MODEL MATRIX WILL BE OUR TRANSFORM MATRIX (because world origin is 0,0,0)
@@ -214,24 +221,16 @@ void Window::MainLoop()
     glm::mat4 view = glm::mat4(1.0f);
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
-    float fov = 45.0f;
     float near = 0.1f;
     float far = 100.0f;
     glm::mat4 projection = glm::perspective(
-        glm::radians(fov),
+        glm::radians(camera.FOV),
         m_aspectRatio,
         near,
         far
     );
 
     // ===== END 3D SETUP ======
-
-    // ===== CAMERA =====
-
-    Camera camera;
-    camera.Transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-
-    // ===== END CAMERA =====
 
     glm::vec3 cubePositions[] = {
         glm::vec3( 0.0f,  0.0f,  0.0f), 
@@ -284,7 +283,7 @@ void Window::MainLoop()
         camera.Update(deltaTime);
 
         projection = glm::perspective(
-            glm::radians(fov),
+            glm::radians(camera.FOV),
             m_aspectRatio,
             near,
             far

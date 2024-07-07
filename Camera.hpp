@@ -12,7 +12,8 @@ public:
             m_yaw(-90.0f),
             m_pitch(0.0f),
             Speed(1.0f), 
-            Sensitivity(1.0f) {}
+            Sensitivity(1.0f),
+            FOV(45.0f) {}
 
     void Update(float deltaTime);
 
@@ -22,6 +23,8 @@ public:
 
     float Speed;
     float Sensitivity;
+
+    float FOV;
 
 private:
     glm::vec3 m_front;
