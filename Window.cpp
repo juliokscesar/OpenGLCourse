@@ -215,12 +215,11 @@ void Window::MainLoop()
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
     float fov = 45.0f;
-    float aspectRatio = (float)m_width / (float)m_height;
     float near = 0.1f;
     float far = 100.0f;
     glm::mat4 projection = glm::perspective(
         glm::radians(fov),
-        aspectRatio,
+        m_aspectRatio,
         near,
         far
     );
@@ -284,6 +283,13 @@ void Window::MainLoop()
 
         camera.Update(deltaTime);
 
+        projection = glm::perspective(
+            glm::radians(fov),
+            m_aspectRatio,
+            near,
+            far
+        );
+
         containerTex.Activate();
         romaTex.Activate();
         for (int i = 0; i < 10; i++)
@@ -313,6 +319,8 @@ void Window::updateWindowProperties()
     int width = 0, height = 0;
     glfwGetWindowSize(m_glfwWindow, &width, &height);
     m_width = width, m_height = height;
+
+    m_aspectRatio = (float)m_width / (float)m_height;
 
     g_bResized = false;
 }
