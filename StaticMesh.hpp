@@ -16,8 +16,10 @@ public:
     StaticMesh(const StaticMesh& other);
 
     void SetVertexAttribute(GLuint loc, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* offsetSize) const noexcept;
-    
+    void SetEnabledVertexAttribute(GLuint loc, bool enable) const noexcept;
+
     Shader& GetShader() noexcept;
+    void SetShader(const std::string& vertexPath, const std::string& fragPath);
 
     void Draw() const noexcept;
 

@@ -232,25 +232,35 @@ void Window::MainLoop()
 
     // ===== END 3D SETUP ======
 
-    glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f), 
-        glm::vec3( 2.0f,  5.0f, -15.0f), 
-        glm::vec3(-1.5f, -2.2f, -2.5f),  
-        glm::vec3(-3.8f, -2.0f, -12.3f),  
-        glm::vec3( 2.4f, -0.4f, -3.5f),  
-        glm::vec3(-1.7f,  3.0f, -7.5f),  
-        glm::vec3( 1.3f, -2.0f, -2.5f),  
-        glm::vec3( 1.5f,  2.0f, -2.5f), 
-        glm::vec3( 1.5f,  0.2f, -1.5f), 
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
 
-    Entity cubes[10];
-    for (int i = 0; i < 10; i++)
-    {
-        cubes[i] = cube;
-        cubes[i].Transform.SetPosition(cubePositions[i]);
-    }
+    // ===== LIGHTING =====
+    
+    // cube to be affected by the light
+    Entity noTexCube(cubeMesh);
+    noTexCube.Mesh.SetShader("shaders/lighting_vert.glsl", "shaders/lighting_frag.glsl");
+    glm::vec3 objColor(1.0f, 0.5f, 0.31f);
+
+    // create new mesh only for light (with differnt shader as well)
+    StaticMesh lightMesh(
+        cubeVertices,
+        sizeof(cubeVertices),
+        sizeof(cubeIndices) / sizeof(float),
+        cubeIndices,
+        sizeof(cubeIndices),
+        "shaders/lightsource_vert.glsl",
+        "shaders/lightsource_frag.glsl"
+    );
+    lightMesh.SetVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+
+    Entity lightSource(lightMesh);
+    lightSource.Transform.Scale(0.5f);
+    lightSource.Transform.SetPosition(glm::vec3(1.2f, 1.0f, 2.0f));
+    // white light
+    glm::vec3 lightColor(1.0f);
+
+    // ===== END LIGHTING =====
+
+
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
@@ -260,7 +270,7 @@ void Window::MainLoop()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (g_bResized)
@@ -271,7 +281,7 @@ void Window::MainLoop()
             glfwSetWindowShouldClose(m_glfwWindow, true);
         }
         
-        // Currently active texture before drawing the object, so the object uses the activated textures
+        // Currently activate texture before drawing the object, so the object uses the activated textures
         // Ideally it's better to activate the textures in the Draw function, but it's best to way for a Material class
         //containerTex.Activate();
         //romaTex.Activate();
@@ -289,22 +299,19 @@ void Window::MainLoop()
             far
         );
 
-        containerTex.Activate();
-        romaTex.Activate();
-        for (int i = 0; i < 10; i++)
-        {
-            float time = (float)glfwGetTime();
-            float rotX = 180.0f * std::sin(time * (i+1));
-            float rotY = 90.0f * std::sin(time) * std::cos(time);
-            float rotZ = 180.0f * std::cos(time * (i+1));
-            cubes[i].Transform.SetRotation(glm::vec3(rotX, rotY, rotZ));
 
-            cubes[i].Mesh.GetShader().SetMat4("model", cubes[i].Transform.GetTransformMatrix());
-            cubes[i].Mesh.GetShader().SetMat4("view", camera.GetLookAtMatrix());
-            cubes[i].Mesh.GetShader().SetMat4("projection", projection);
+        noTexCube.Mesh.GetShader().SetMat4("model", noTexCube.Transform.GetTransformMatrix());
+        noTexCube.Mesh.GetShader().SetMat4("view", camera.GetLookAtMatrix());
+        noTexCube.Mesh.GetShader().SetMat4("projection", projection);
+        noTexCube.Mesh.GetShader().SetVec3("objectColor", objColor);
+        noTexCube.Mesh.GetShader().SetVec3("lightColor", lightColor);
+        noTexCube.Draw();
 
-            cubes[i].Draw();
-        }
+        lightSource.Mesh.GetShader().SetMat4("model", lightSource.Transform.GetTransformMatrix());
+        lightSource.Mesh.GetShader().SetMat4("view", camera.GetLookAtMatrix());
+        lightSource.Mesh.GetShader().SetMat4("projection", projection);
+        lightSource.Mesh.GetShader().SetVec3("lightColor", lightColor);
+        lightSource.Draw();
 
         glfwSwapBuffers(m_glfwWindow);
         glfwPollEvents();

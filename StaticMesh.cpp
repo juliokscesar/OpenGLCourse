@@ -17,8 +17,6 @@ StaticMesh::StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint num
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
 }
 
 StaticMesh::StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices, GLuint indices[], GLsizeiptr indSize, const std::string& vertexPath, const std::string& fragPath)
@@ -68,11 +66,24 @@ void StaticMesh::SetVertexAttribute(GLuint loc, GLint size, GLenum type, GLboole
     glEnableVertexAttribArray(loc);
 }
 
+void StaticMesh::SetEnabledVertexAttribute(GLuint loc, bool enable) const noexcept
+{
+    if (enable)
+        glEnableVertexAttribArray(loc);
+    else
+        glDisableVertexAttribArray(loc);
+}
+
 Shader& StaticMesh::GetShader() noexcept
 {
     // Just to ensure shader will be activated when using it
     m_shader.Use();
     return m_shader;
+}
+
+void StaticMesh::SetShader(const std::string &vertexPath, const std::string &fragPath)
+{
+    m_shader = Shader(vertexPath, fragPath);
 }
 
 void StaticMesh::Draw() const noexcept
