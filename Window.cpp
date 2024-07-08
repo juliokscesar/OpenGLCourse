@@ -130,42 +130,42 @@ void Window::MainLoop()
 
     // ===== CUBE ======
     float cubeVertices[]={
-        // positions        // texcoords (2D TEXTURE)
+        // positions        // texcoords
         // BACK
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // A 0 
-         0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // B 1 
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // C 2 
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // D 3 
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
 
         // RIGHT
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // B 4 
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // C 5 
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // F 6 
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // G 7 
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
         // FRONT
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // E 8 
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // F 9 
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // G 10 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // H 11 
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
         // TOP
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // C 12 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // D 13 
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // E 14 
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // F 15 
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
         // LEFT
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // A 16
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // D 17
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // E 18
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // H 19
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
 
         // BOTTOM
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // A 20 
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // B 21 
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // G 22 
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f  // H 23
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f
     };
 
     unsigned int cubeIndices[] = {
@@ -235,9 +235,62 @@ void Window::MainLoop()
 
     // ===== LIGHTING =====
     
+    float cubeWithNormals[] = {
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+    };
+
+    StaticMesh cubeNormals(
+        cubeWithNormals,
+        sizeof(cubeWithNormals),
+        36,
+        "shaders/lighting_vert.glsl",
+        "shaders/lighting_frag.glsl"
+    );
+    cubeNormals.SetVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
+    cubeNormals.SetVertexAttribute(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3*sizeof(float)));
+
     // cube to be affected by the light
-    Entity noTexCube(cubeMesh);
-    noTexCube.Mesh.SetShader("shaders/lighting_vert.glsl", "shaders/lighting_frag.glsl");
+    Entity noTexCube(cubeNormals);
     glm::vec3 objColor(1.0f, 0.5f, 0.31f);
 
     // create new mesh only for light (with differnt shader as well)
@@ -257,6 +310,13 @@ void Window::MainLoop()
     lightSource.Transform.SetPosition(glm::vec3(1.2f, 1.0f, 2.0f));
     // white light
     glm::vec3 lightColor(1.0f);
+
+    // ambient lighting factor
+    float ambientFactor = 0.1f;
+
+    // specular strength and (constant) shininess
+    float specularStrength = 0.5f;
+    float specularShininess = 32.0f;
 
     // ===== END LIGHTING =====
 
@@ -303,8 +363,14 @@ void Window::MainLoop()
         noTexCube.Mesh.GetShader().SetMat4("model", noTexCube.Transform.GetTransformMatrix());
         noTexCube.Mesh.GetShader().SetMat4("view", camera.GetLookAtMatrix());
         noTexCube.Mesh.GetShader().SetMat4("projection", projection);
+        // lighting 
         noTexCube.Mesh.GetShader().SetVec3("objectColor", objColor);
         noTexCube.Mesh.GetShader().SetVec3("lightColor", lightColor);
+        noTexCube.Mesh.GetShader().SetVec3("lightPos", lightSource.Transform.GetPosition());
+        noTexCube.Mesh.GetShader().SetVec3("viewPos", camera.Transform.GetPosition());
+        noTexCube.Mesh.GetShader().SetFloat("ambientFactor", ambientFactor);
+        noTexCube.Mesh.GetShader().SetFloat("specularStrength", specularStrength);
+        noTexCube.Mesh.GetShader().SetFloat("specularShininess", specularShininess);
         noTexCube.Draw();
 
         lightSource.Mesh.GetShader().SetMat4("model", lightSource.Transform.GetTransformMatrix());
@@ -312,6 +378,16 @@ void Window::MainLoop()
         lightSource.Mesh.GetShader().SetMat4("projection", projection);
         lightSource.Mesh.GetShader().SetVec3("lightColor", lightColor);
         lightSource.Draw();
+
+
+        // light orbiting around cube
+        float radius = 2.0f;
+        float time = static_cast<float>(glfwGetTime());
+        float light_x = radius * std::sin(time);
+        float light_z = radius * std::cos(time);
+        float light_y = 1.0f;
+        lightSource.Transform.SetPosition(glm::vec3(light_x, light_y, light_z));
+
 
         glfwSwapBuffers(m_glfwWindow);
         glfwPollEvents();
