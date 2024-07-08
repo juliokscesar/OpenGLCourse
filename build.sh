@@ -1,3 +1,14 @@
-# TODO: write this fucking build better
 # TODO: CMake
-g++ -o prog ext/glad/src/glad.c ext/imgui/imgui.cpp ext/imgui/backends/imgui_impl_glfw.cpp ext/imgui/backends/imgui_impl_opengl3.cpp ext/imgui/imgui_draw.cpp ext/imgui/imgui_widgets.cpp ext/imgui/imgui_tables.cpp main.cpp Shader.cpp Window.cpp Input.cpp StaticMesh.cpp Texture2D.cpp Entity.cpp TransformComponent.cpp Camera.cpp -Iext/ -Iext/glad/include/ -Iext/imgui/ -Iext/imgui/backends/ -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl
+
+OUT=prog
+
+GLAD_DIR="ext/glad"
+GLAD_SRC=$GLAD_DIR/src/glad.c
+
+IMGUI_DIR="ext/imgui"
+IMGUI_SRC="$IMGUI_DIR/imgui.cpp $IMGUI_DIR/imgui_draw.cpp $IMGUI_DIR/imgui_widgets.cpp $IMGUI_DIR/imgui_tables.cpp $IMGUI_DIR/backends/imgui_impl_glfw.cpp $IMGUI_DIR/backends/imgui_impl_opengl3.cpp"
+
+LIBS="-lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl"
+SOURCES="main.cpp Shader.cpp Window.cpp Input.cpp StaticMesh.cpp Texture2D.cpp Entity.cpp TransformComponent.cpp Camera.cpp"
+
+g++ -o $OUT $GLAD_SRC $IMGUI_SRC $SOURCES -Iext/ -I$GLAD_DIR -I$GLAD_DIR/include -I$IMGUI_DIR -I$IMGUI_DIR/backends $LIBS
