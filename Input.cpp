@@ -7,8 +7,8 @@
 
 /*
     keyState[a][b]
-    a: key action
-    b: key mods
+    a: key
+    b: 0=ACTION, 1=MODS
 */
 static int keysActionMods[N_KEYS][2];
 static bool keysState[N_KEYS];
@@ -42,6 +42,9 @@ static void keyInputCallback(GLFWwindow* window, int key, int scancode, int acti
 
 static void mouseMoveCallback(GLFWwindow* window, double xpos, double ypos)
 {
+    if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL)
+        return;
+
     if (mouseTracker.bFirst)
     {
         mouseTracker.lastX = static_cast<float>(xpos);
@@ -72,9 +75,9 @@ static void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffs
     mouseTracker.scrollOffset = static_cast<float>(yoffset);
 }
 
-KeyAction Input::GetKeyGLFWAction(int key) noexcept
+int Input::GetKeyGLFWAction(int key) noexcept
 {
-    return static_cast<KeyAction>(keysActionMods[key][ACTION]);
+    return keysActionMods[key][ACTION];
 }
 
 bool Input::GetKeyState(int key) noexcept

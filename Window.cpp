@@ -6,6 +6,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <imgui/imgui.h>
+#include <imgui/backends/imgui_impl_glfw.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
+
 #include "Input.hpp"
 #include "StaticMesh.hpp"
 #include "Shader.hpp"
@@ -65,6 +69,18 @@ void Window::Init()
 
     // enable depth testing
     glEnable(GL_DEPTH_TEST);
+
+    // TODO: take ImGui setup and usage to another file
+    // Dear ImGui context setup
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    // setup imgui style
+    ImGui::StyleColorsDark();
+    // setup platform/rendered backends
+    ImGui_ImplGlfw_InitForOpenGL(m_glfwWindow, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 }
 
 void Window::MainLoop()
@@ -324,6 +340,8 @@ void Window::MainLoop()
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
+    
+    static bool imguiTest = true;
     while (!glfwWindowShouldClose(m_glfwWindow))
     {
         float currentFrame = (float)glfwGetTime();
@@ -333,6 +351,22 @@ void Window::MainLoop()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+        // start dear imgui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // Window to edit light factors
+        ImGui::Begin("Object light properties");
+
+        ImGui::SliderFloat("Ambient factor", &ambientFactor, 0.0f, 1.0f);
+        ImGui::SliderFloat("Specular strength", &specularStrength, 0.0f, 1.0f);
+        ImGui::InputFloat("Specular shininess", &specularShininess);
+        ImGui::ColorEdit3("Object color", &objColor.x);
+
+        ImGui::End();
+
         if (g_bResized)
             this->updateWindowProperties();
 
@@ -341,6 +375,22 @@ void Window::MainLoop()
             glfwSetWindowShouldClose(m_glfwWindow, true);
         }
         
+        // TODO: make this 'check once' better
+        // Toggle mouse cursor capture and thus camera mouse movement 
+        static bool changed = false;
+        if (Input::GetKeyState(GLFW_KEY_TAB) && !changed)
+        {
+            int cursor = glfwGetInputMode(m_glfwWindow, GLFW_CURSOR);
+            int mode = (cursor == GLFW_CURSOR_DISABLED) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
+            glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, mode);
+
+            changed = true;
+        }
+        else if (!Input::GetKeyState(GLFW_KEY_TAB) && changed)
+        {
+            changed = false;
+        }
+
         // Currently activate texture before drawing the object, so the object uses the activated textures
         // Ideally it's better to activate the textures in the Draw function, but it's best to way for a Material class
         //containerTex.Activate();
@@ -389,9 +439,25 @@ void Window::MainLoop()
         lightSource.Transform.SetPosition(glm::vec3(light_x, light_y, light_z));
 
 
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(m_glfwWindow);
         glfwPollEvents();
     }
+
+    Finish();
+}
+
+void Window::Finish()
+{
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(m_glfwWindow);
+    glfwTerminate();
 }
 
 void Window::updateWindowProperties()

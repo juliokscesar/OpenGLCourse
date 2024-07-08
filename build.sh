@@ -1,1 +1,3 @@
-g++ -o prog ext/glad/src/glad.c main.cpp Shader.cpp Window.cpp Input.cpp StaticMesh.cpp Texture2D.cpp Entity.cpp TransformComponent.cpp Camera.cpp -Iext/ -Iext/glad/include/ -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl
+# TODO: write this fucking build better
+# TODO: CMake
+g++ -o prog ext/glad/src/glad.c ext/imgui/imgui.cpp ext/imgui/backends/imgui_impl_glfw.cpp ext/imgui/backends/imgui_impl_opengl3.cpp ext/imgui/imgui_draw.cpp ext/imgui/imgui_widgets.cpp ext/imgui/imgui_tables.cpp main.cpp Shader.cpp Window.cpp Input.cpp StaticMesh.cpp Texture2D.cpp Entity.cpp TransformComponent.cpp Camera.cpp -Iext/ -Iext/glad/include/ -Iext/imgui/ -Iext/imgui/backends/ -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl

@@ -4,16 +4,9 @@
 
 using glfwKeyCallbackFunc = void(*)(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-enum class KeyAction
-{
-    PRESS   = GLFW_PRESS,
-    RELEASE = GLFW_RELEASE,
-    REPEAT  = GLFW_REPEAT
-};
-
 namespace Input
 {
-    KeyAction GetKeyGLFWAction(int key) noexcept;
+    int GetKeyGLFWAction(int key) noexcept;
 
     bool GetKeyState(int key) noexcept;
 

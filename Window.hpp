@@ -14,6 +14,7 @@ public:
 
     void Init();
     void MainLoop();
+    void Finish();
 
     GLFWwindow* GetGLFWWindow();
 
