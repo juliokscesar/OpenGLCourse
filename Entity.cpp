@@ -13,6 +13,5 @@ void Entity::Draw()
     {
         Mesh.Draw();
         Transform.Update();
-        Mesh.GetShader().SetMat4("transform", Transform.GetTransformMatrix());
     }
 }

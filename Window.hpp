@@ -16,7 +16,7 @@ public:
     void MainLoop();
     void Finish();
 
-    GLFWwindow* GetGLFWWindow();
+    inline GLFWwindow* GetGLFWWindow() const noexcept { return m_glfwWindow; }
 
 private:
     GLFWwindow* m_glfwWindow;

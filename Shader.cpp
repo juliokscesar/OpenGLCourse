@@ -98,6 +98,8 @@ void Shader::Init(const std::string &vertexPath, const std::string &fragmentPath
     // delete shaders
     glDeleteShader(m_vertexID);
     glDeleteShader(m_fragID);
+
+    Use();
 }
 
 

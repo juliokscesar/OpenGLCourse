@@ -1,11 +1,9 @@
 #include "StaticMesh.hpp"
 
-StaticMesh::StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices, const std::string& vertexPath, const std::string& fragPath)
+StaticMesh::StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices)
 {
     m_useIndexedDrawing = false;
     m_vertices = numVertices;
-     // TODO: IMPLEMENT MOVE OPERATOR FOR COPY RVALUE OPERATIONS LIKE THIS
-    m_shader = Shader(vertexPath, fragPath);
 
     glGenVertexArrays(1, &m_VAO);
     glBindVertexArray(m_VAO);
@@ -19,11 +17,10 @@ StaticMesh::StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint num
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-StaticMesh::StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices, GLuint indices[], GLsizeiptr indSize, const std::string& vertexPath, const std::string& fragPath)
+StaticMesh::StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices, GLuint indices[], GLsizeiptr indSize)
 {
     m_useIndexedDrawing = true;
     m_vertices = numVertices;
-    m_shader = Shader(vertexPath, fragPath);
 
     glGenVertexArrays(1, &m_VAO);
     glBindVertexArray(m_VAO);
@@ -51,7 +48,6 @@ StaticMesh::StaticMesh(const StaticMesh &other)
     this->m_EBO = other.m_EBO;
     this->m_vertices = other.m_vertices;
     this->m_useIndexedDrawing = other.m_useIndexedDrawing;
-    this->m_shader = other.m_shader;
 }
 
 void StaticMesh::SetVertexAttribute(GLuint loc, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *offsetSize) const noexcept
@@ -74,22 +70,8 @@ void StaticMesh::SetEnabledVertexAttribute(GLuint loc, bool enable) const noexce
         glDisableVertexAttribArray(loc);
 }
 
-Shader& StaticMesh::GetShader() noexcept
-{
-    // Just to ensure shader will be activated when using it
-    m_shader.Use();
-    return m_shader;
-}
-
-void StaticMesh::SetShader(const std::string &vertexPath, const std::string &fragPath)
-{
-    m_shader = Shader(vertexPath, fragPath);
-}
-
 void StaticMesh::Draw() const noexcept
 {
-    m_shader.Use();
-
     glBindVertexArray(m_VAO);
 
     if (m_useIndexedDrawing)

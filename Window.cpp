@@ -93,7 +93,9 @@ void Window::MainLoop()
          0.0f,  0.5f, 0.0f,  0.5f, 0.5f // top
     };
 
-    StaticMesh triangleMesh(triVertices, sizeof(triVertices), 3, "shaders/triangle_vert.glsl", "shaders/triangle_frag.glsl");
+    Shader triangleShader("shaders/triangle_vert.glsl", "shaders/triangle_frag.glsl");
+
+    StaticMesh triangleMesh(triVertices, sizeof(triVertices), 3);
     // position vertex attrib
     triangleMesh.SetVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
     // texcoords vertex attrib
@@ -101,7 +103,7 @@ void Window::MainLoop()
 
     Texture2D atlasTex("textures/medieval-signs-atlas.png", true, GL_RGB, GL_RGBA, GL_TEXTURE0);
     // activate unit in shader (not needed)
-    triangleMesh.GetShader().SetInt("texUnit", 0);
+    triangleShader.SetInt("texUnit", 0);
 
     Entity triangle(triangleMesh);
 
@@ -120,24 +122,18 @@ void Window::MainLoop()
         1, 2, 3  // second triangle
     };
 
-    StaticMesh rectMesh(
-        rectVertices, 
-        sizeof(rectVertices), 
-        6, 
-        rectIndices, 
-        sizeof(rectIndices), 
-        "shaders/rectangle_vert.glsl", 
-        "shaders/rectangle_frag.glsl"
-    );
+    Shader rectShader("shaders/rectangle_vert.glsl", "shaders/rectangle_frag.glsl");
+
+    StaticMesh rectMesh(rectVertices, sizeof(rectVertices), 6, rectIndices, sizeof(rectIndices));
     rectMesh.SetVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
     rectMesh.SetVertexAttribute(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(6*sizeof(float)));
 
     Texture2D containerTex("textures/container.jpg", false, GL_RGB, GL_RGB, GL_TEXTURE0);
     Texture2D romaTex("textures/roma.png", true, GL_RGB, GL_RGBA, GL_TEXTURE1);
 
-    rectMesh.GetShader().SetInt("texture0", 0); // set texture0 to use unit GL_TEXTURE0
-    rectMesh.GetShader().SetInt("texture1", 1); // set texture0 to use unit GL_TEXTURE1
-    rectMesh.GetShader().SetFloat("mixProportion", 0.5);
+    rectShader.SetInt("texture0", 0); // set texture0 to use unit GL_TEXTURE0
+    rectShader.SetInt("texture1", 1); // set texture0 to use unit GL_TEXTURE1
+    rectShader.SetFloat("mixProportion", 0.5);
 
     Entity rectangle(rectMesh);
 
@@ -199,14 +195,14 @@ void Window::MainLoop()
         21, 23, 22
     };
 
+    Shader cubeShader("shaders/cube_vert.glsl", "shaders/cube_frag.glsl");
+
     StaticMesh cubeMesh(
         cubeVertices, 
         sizeof(cubeVertices), 
         static_cast<unsigned int>(sizeof(cubeIndices) / sizeof(float)),
         cubeIndices,
-        sizeof(cubeIndices),
-        "shaders/cube_vert.glsl", 
-        "shaders/cube_frag.glsl"
+        sizeof(cubeIndices)
     );
     // position vertex attribute
     cubeMesh.SetVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
@@ -214,9 +210,9 @@ void Window::MainLoop()
     cubeMesh.SetVertexAttribute(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(3*sizeof(float)));
 
     Entity cube(cubeMesh);
-    cube.Mesh.GetShader().SetInt("texture0", 0);
-    cube.Mesh.GetShader().SetInt("texture1", 1);
-    cube.Mesh.GetShader().SetFloat("mixProportion", 0.5f);
+    cubeShader.SetInt("texture0", 0);
+    cubeShader.SetInt("texture1", 1);
+    cubeShader.SetFloat("mixProportion", 0.5f);
 
     // ===== END CUBE ======
 
@@ -298,9 +294,7 @@ void Window::MainLoop()
     StaticMesh cubeNormals(
         cubeWithNormals,
         sizeof(cubeWithNormals),
-        36,
-        "shaders/lighting_vert.glsl",
-        "shaders/lighting_frag.glsl"
+        36
     );
     cubeNormals.SetVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
     cubeNormals.SetVertexAttribute(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3*sizeof(float)));
@@ -315,9 +309,7 @@ void Window::MainLoop()
         sizeof(cubeVertices),
         sizeof(cubeIndices) / sizeof(float),
         cubeIndices,
-        sizeof(cubeIndices),
-        "shaders/lightsource_vert.glsl",
-        "shaders/lightsource_frag.glsl"
+        sizeof(cubeIndices)
     );
     lightMesh.SetVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
 
@@ -334,14 +326,14 @@ void Window::MainLoop()
     float specularStrength = 0.5f;
     float specularShininess = 32.0f;
 
-    // ===== END LIGHTING =====
+    Shader lightingShader("shaders/lighting_vert.glsl", "shaders/lighting_frag.glsl");
+    Shader lightSourceShader("shaders/lightsource_vert.glsl", "shaders/lightsource_frag.glsl");
 
+    // ===== END LIGHTING =====
 
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
-    
-    static bool imguiTest = true;
     while (!glfwWindowShouldClose(m_glfwWindow))
     {
         float currentFrame = (float)glfwGetTime();
@@ -395,9 +387,11 @@ void Window::MainLoop()
         // Ideally it's better to activate the textures in the Draw function, but it's best to way for a Material class
         //containerTex.Activate();
         //romaTex.Activate();
+        //rectShader.Use();  
         //rectangle.Draw();
 
         //atlasTex.Activate();
+        //triangleShader.Use();
         //triangle.Draw();
 
         camera.Update(deltaTime);
@@ -410,23 +404,25 @@ void Window::MainLoop()
         );
 
 
-        noTexCube.Mesh.GetShader().SetMat4("model", noTexCube.Transform.GetTransformMatrix());
-        noTexCube.Mesh.GetShader().SetMat4("view", camera.GetLookAtMatrix());
-        noTexCube.Mesh.GetShader().SetMat4("projection", projection);
         // lighting 
-        noTexCube.Mesh.GetShader().SetVec3("objectColor", objColor);
-        noTexCube.Mesh.GetShader().SetVec3("lightColor", lightColor);
-        noTexCube.Mesh.GetShader().SetVec3("lightPos", lightSource.Transform.GetPosition());
-        noTexCube.Mesh.GetShader().SetVec3("viewPos", camera.Transform.GetPosition());
-        noTexCube.Mesh.GetShader().SetFloat("ambientFactor", ambientFactor);
-        noTexCube.Mesh.GetShader().SetFloat("specularStrength", specularStrength);
-        noTexCube.Mesh.GetShader().SetFloat("specularShininess", specularShininess);
+        lightingShader.Use();
+        lightingShader.SetMat4("model", noTexCube.Transform.GetTransformMatrix());
+        lightingShader.SetMat4("view", camera.GetLookAtMatrix());
+        lightingShader.SetMat4("projection", projection);
+        lightingShader.SetVec3("objectColor", objColor);
+        lightingShader.SetVec3("lightColor", lightColor);
+        lightingShader.SetVec3("lightPos", lightSource.Transform.GetPosition());
+        lightingShader.SetVec3("viewPos", camera.Transform.GetPosition());
+        lightingShader.SetFloat("ambientFactor", ambientFactor);
+        lightingShader.SetFloat("specularStrength", specularStrength);
+        lightingShader.SetFloat("specularShininess", specularShininess);
         noTexCube.Draw();
 
-        lightSource.Mesh.GetShader().SetMat4("model", lightSource.Transform.GetTransformMatrix());
-        lightSource.Mesh.GetShader().SetMat4("view", camera.GetLookAtMatrix());
-        lightSource.Mesh.GetShader().SetMat4("projection", projection);
-        lightSource.Mesh.GetShader().SetVec3("lightColor", lightColor);
+        lightSourceShader.Use(); 
+        lightSourceShader.SetMat4("model", lightSource.Transform.GetTransformMatrix());
+        lightSourceShader.SetMat4("view", camera.GetLookAtMatrix());
+        lightSourceShader.SetMat4("projection", projection);
+        lightSourceShader.SetVec3("lightColor", lightColor);
         lightSource.Draw();
 
 
