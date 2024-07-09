@@ -248,47 +248,48 @@ void Window::MainLoop()
     // ===== LIGHTING =====
     
     float cubeWithNormals[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
 
     StaticMesh cubeNormals(
@@ -296,8 +297,12 @@ void Window::MainLoop()
         sizeof(cubeWithNormals),
         36
     );
-    cubeNormals.SetVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
-    cubeNormals.SetVertexAttribute(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3*sizeof(float)));
+    // position vertex attribute
+    cubeNormals.SetVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
+    // normals vertex attribute
+    cubeNormals.SetVertexAttribute(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(3*sizeof(float)));
+    // texcoords vertex attribute
+    cubeNormals.SetVertexAttribute(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(6*sizeof(float)));
 
     // cube to be affected by the light
     Entity noTexCube(cubeNormals);
@@ -322,12 +327,23 @@ void Window::MainLoop()
     glm::vec3 lightSpecular(1.0f);
     bool bOrbitingCube = true;
 
-    // Material for the cube
-    Material gold{};
+    bool bEnableLighting = true;
+
+    // SimpleMaterial for the cube
+    SimpleMaterial gold{};
     gold.ambient = glm::vec3(0.24725f, 0.1995f, 0.0745f);
     gold.diffuse = glm::vec3(0.75164f, 0.60648f, 0.22648f);
     gold.specular = glm::vec3(0.628281f, 0.555802f, 0.366065f);
     gold.shininess = 128.0f * 0.4f;
+
+    // Material using diffuse and specular maps
+    Texture2D woodCrateTex("textures/container2.png", false, GL_RGB, GL_RGBA, 0);
+    Texture2D woodCrateSpecular("textures/container2_specular.png", false, GL_RGB, GL_RGBA, 1);
+    MaterialMap woodCrateMat{};
+    woodCrateMat.diffuseMapTex = woodCrateTex.GetTexUnit();
+    woodCrateMat.specularMapTex = woodCrateSpecular.GetTexUnit();
+    woodCrateMat.shininess = 32.0f;
+
 
     Shader lightingShader("shaders/lighting_vert.glsl", "shaders/lighting_frag.glsl");
     Shader lightSourceShader("shaders/lightsource_vert.glsl", "shaders/lightsource_frag.glsl");
@@ -356,11 +372,14 @@ void Window::MainLoop()
         ImGui::Begin("Lighting properties");
 
         ImGui::Text("Cube material properties");
-        ImGui::SliderFloat3("MatAmbient", &gold.ambient[0], 0.0f, 1.0f);
-        ImGui::SliderFloat3("MatDiffuse", &gold.diffuse[0], 0.0f, 1.0f);
-        ImGui::SliderFloat3("MatSpecular", &gold.specular[0], 0.0f, 1.0f);
-        ImGui::SliderFloat("MatShininess", &gold.shininess, 0.0f, 512.0f);
-        
+        // ImGui::SliderFloat3("MatAmbient", &gold.ambient[0], 0.0f, 1.0f);
+        // ImGui::SliderFloat3("MatDiffuse", &gold.diffuse[0], 0.0f, 1.0f);
+        // ImGui::SliderFloat3("MatSpecular", &gold.specular[0], 0.0f, 1.0f);
+        // ImGui::SliderFloat("MatShininess", &gold.shininess, 0.0f, 512.0f);
+        ImGui::SliderFloat("MatShininess", &woodCrateMat.shininess, 0.01f, 512.0f);
+
+        ImGui::Checkbox("Enable lighting", &bEnableLighting);
+
         ImGui::Text("Light properties");
         ImGui::SliderFloat3("LightAmbient", &lightAmbient[0], 0.0f, 1.0f);
         ImGui::SliderFloat3("LightDiffuse", &lightDiffuse[0], 0.0f, 1.0f);
@@ -419,15 +438,25 @@ void Window::MainLoop()
         lightingShader.SetMat4("model", noTexCube.Transform.GetTransformMatrix());
         lightingShader.SetMat4("view", camera.GetLookAtMatrix());
         lightingShader.SetMat4("projection", projection);
+        lightingShader.SetBool("bEnableLighting", bEnableLighting);
         lightingShader.SetVec3("light.position", lightSource.Transform.GetPosition());
         lightingShader.SetVec3("light.ambient", lightAmbient);
         lightingShader.SetVec3("light.diffuse", lightDiffuse);
         lightingShader.SetVec3("light.specular", lightSpecular);
         lightingShader.SetVec3("viewPos", camera.Transform.GetPosition());
-        lightingShader.SetVec3("material.ambient", gold.ambient);
-        lightingShader.SetVec3("material.diffuse", gold.diffuse);
-        lightingShader.SetVec3("material.specular", gold.specular);
-        lightingShader.SetFloat("material.shininess", gold.shininess);
+        
+        // USING GOLD SIMPLE MATERIAL:
+        //lightingShader.SetVec3("material.ambient", gold.ambient);
+        //lightingShader.SetVec3("material.diffuse", gold.diffuse);
+        //lightingShader.SetVec3("material.specular", gold.specular);
+        //lightingShader.SetFloat("material.shininess", gold.shininess);
+
+        // USING TEXTURE MATERIAL:
+        woodCrateTex.Activate();
+        lightingShader.SetInt("material.diffuseMap", woodCrateMat.diffuseMapTex);
+        lightingShader.SetInt("material.specularMap", woodCrateMat.specularMapTex);
+        lightingShader.SetFloat("material.shininess", woodCrateMat.shininess);
+
         noTexCube.Draw();
 
         lightSourceShader.Use(); 

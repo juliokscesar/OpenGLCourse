@@ -16,7 +16,10 @@ public:
 
     void Activate() const noexcept;
 
+    inline int GetTexUnit() const noexcept { return m_texUnit; }
+    inline void SetTexUnit(int unit) noexcept { m_texUnit = unit; }
+
 private:
     unsigned int m_id;
-    GLenum m_texUnit;
+    int m_texUnit;
 };

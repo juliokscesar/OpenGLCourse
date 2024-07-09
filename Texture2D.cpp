@@ -17,7 +17,7 @@ void Texture2D::Init(const std::string &imgPath, bool flip, int internalFormat, 
     unsigned char* data = stbi_load(imgPath.c_str(), &width, &height, &nrChannels, 0);
 
     m_texUnit = texUnit;
-    glActiveTexture(texUnit);
+    glActiveTexture(texUnit + GL_TEXTURE0);
 
     glGenTextures(1, &m_id);
     glBindTexture(GL_TEXTURE_2D, m_id);
@@ -36,6 +36,6 @@ void Texture2D::Init(const std::string &imgPath, bool flip, int internalFormat, 
 
 void Texture2D::Activate() const noexcept
 {
-    glActiveTexture(m_texUnit);
+    glActiveTexture(m_texUnit + GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_id);
 }
