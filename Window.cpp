@@ -49,6 +49,9 @@ void Window::Init()
     // Set current context to this window
     glfwMakeContextCurrent(m_glfwWindow);
 
+    // Disable vsync
+    glfwSwapInterval(0);
+
     // initialzie GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -367,6 +370,15 @@ void Window::MainLoop()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+
+        // Frame stats window (ms/frame, FPS)
+        ImGui::Begin("Frame stats");
+
+        ImGui::Text("Time per frame: %f ms", deltaTime*1000);
+        ImGui::Text("FPS: %f", 1.0f/deltaTime);
+
+        ImGui::End();
 
         // Window to edit light factors
         ImGui::Begin("Lighting properties");
