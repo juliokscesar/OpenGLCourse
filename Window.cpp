@@ -453,6 +453,7 @@ void Window::MainLoop()
 
         // USING TEXTURE MATERIAL:
         woodCrateTex.Activate();
+        woodCrateSpecular.Activate();
         lightingShader.SetInt("material.diffuseMap", woodCrateMat.diffuseMapTex);
         lightingShader.SetInt("material.specularMap", woodCrateMat.specularMapTex);
         lightingShader.SetFloat("material.shininess", woodCrateMat.shininess);
