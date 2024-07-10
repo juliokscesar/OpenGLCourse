@@ -21,6 +21,17 @@ public:
 
     Entity(const Entity& other);
 
+    Entity& operator=(const Entity& other)
+    {
+        if (this != &other)
+        {
+            this->Mesh = other.Mesh;
+            this->Transform = other.Transform;
+            this->m_visible = other.m_visible;
+        }
+        return *this;
+    }
+
     StaticMesh Mesh;
     TransformComponent Transform;
 

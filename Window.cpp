@@ -320,9 +320,28 @@ void Window::MainLoop()
     glm::vec3 lightAmbient(0.2f);
     glm::vec3 lightDiffuse(1.0f);
     glm::vec3 lightSpecular(1.0f);
-    bool bOrbitingCube = true;
+    bool bOrbitingCube = false;
+
+    // using directional light
+    glm::vec3 dirLightDirection(-0.2f, -1.0f, -0.3f);
+
+    // using point light
+    // lightPos will be the lightSource position
+    float attConst = 1.0f;
+    float attLinear = 0.09f;
+    float attQuad = 0.032f;
+
+    // using spotlight as flashlight
+    // light position will be camera position
+    // light direction will be camera pointing direction
+    float innerCutoff = 12.5f;
+    float outerCutoff = 17.5f;
 
     bool bEnableLighting = true;
+    bool bUseDirectionalLight = false;
+    bool bUsePointLight = true;
+    bool bUseSpotLight = false;
+    int usingLight = 1;
 
     // SimpleMaterial for the cube
     SimpleMaterial gold{};
@@ -346,6 +365,26 @@ void Window::MainLoop()
     // ===== END LIGHTING =====
 
 
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f),
+        glm::vec3( 2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3( 2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3( 1.3f, -2.0f, -2.5f),
+        glm::vec3( 1.5f,  2.0f, -2.5f),
+        glm::vec3( 1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+    Entity cubes[10];
+    for (size_t i = 0; i < 10; i++)
+    {
+        cubes[i] = Entity(cubeNormals);
+        cubes[i].Transform.SetPosition(cubePositions[i]);
+    }
+
+
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
     while (!glfwWindowShouldClose(m_glfwWindow))
@@ -356,7 +395,6 @@ void Window::MainLoop()
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
         // start dear imgui frame
         UIHelper::NewFrame();
@@ -373,20 +411,57 @@ void Window::MainLoop()
         // Window to edit light factors
         ImGui::Begin("Lighting properties");
 
-        ImGui::Text("Cube material properties");
-        // ImGui::SliderFloat3("MatAmbient", &gold.ambient[0], 0.0f, 1.0f);
-        // ImGui::SliderFloat3("MatDiffuse", &gold.diffuse[0], 0.0f, 1.0f);
-        // ImGui::SliderFloat3("MatSpecular", &gold.specular[0], 0.0f, 1.0f);
-        // ImGui::SliderFloat("MatShininess", &gold.shininess, 0.0f, 512.0f);
-        ImGui::SliderFloat("MatShininess", &woodCrateMat.shininess, 0.01f, 512.0f);
-
         ImGui::Checkbox("Enable lighting", &bEnableLighting);
 
-        ImGui::Text("Light properties");
         ImGui::SliderFloat3("LightAmbient", &lightAmbient[0], 0.0f, 1.0f);
         ImGui::SliderFloat3("LightDiffuse", &lightDiffuse[0], 0.0f, 1.0f);
         ImGui::SliderFloat3("LightSpecular", &lightSpecular[0], 0.0f, 1.0f);
-        ImGui::Checkbox("Orbit movment", &bOrbitingCube);
+        
+        ImGui::RadioButton("Directional light", &usingLight, 0); ImGui::SameLine();
+        ImGui::RadioButton("Point light", &usingLight, 1); ImGui::SameLine();
+        ImGui::RadioButton("Spotlight (flashlight)", &usingLight, 2);
+    
+        if (usingLight == 0)
+        {
+            bUseDirectionalLight = true;
+            bUsePointLight = false;
+            bUseSpotLight = false;
+        }
+        else if (usingLight == 1)
+        {
+            bUseDirectionalLight = false;
+            bUsePointLight = true;
+            bUseSpotLight = false;
+        }
+        else if (usingLight == 2)
+        {
+            bUseDirectionalLight = false;
+            bUsePointLight = false;
+            bUseSpotLight = true;
+        }
+
+        if (bUseDirectionalLight)
+        {
+            ImGui::Text("Directional Light properties");
+            ImGui::SliderFloat3("LightDirection", &dirLightDirection[0], -1.0f, 1.0f);
+        }
+        else if (bUsePointLight)
+        {
+            ImGui::Text("Point light properties");
+            ImGui::SliderFloat("Attenuation constant", &attConst, 0.1f, 1.0f);
+            ImGui::SliderFloat("Attenuation linear", &attLinear, 0.0001f, 1.0f);
+            ImGui::SliderFloat("Attenuation quadratic", &attQuad, 0.000001f, 2.0f);
+            ImGui::Checkbox("Orbit movment", &bOrbitingCube);
+        }
+        else if (bUseSpotLight)
+        {
+            ImGui::Text("Spotlight properties");
+            ImGui::SliderFloat("Inner Cutoff angle (degrees)", &innerCutoff, 0.1f, 180.0f);
+            ImGui::SliderFloat("Outer cutoff angle (degrees)", &outerCutoff, 0.1f, 180.0f);
+            ImGui::SliderFloat("Attenuation constant", &attConst, 0.1f, 1.0f);
+            ImGui::SliderFloat("Attenuation linear", &attLinear, 0.0001f, 1.0f);
+            ImGui::SliderFloat("Attenuation quadratic", &attQuad, 0.000001f, 2.0f);
+        }
 
         ImGui::End();
 
@@ -437,14 +512,48 @@ void Window::MainLoop()
 
         // lighting 
         lightingShader.Use();
-        lightingShader.SetMat4("model", noTexCube.Transform.GetTransformMatrix());
+        //lightingShader.SetMat4("model", noTexCube.Transform.GetTransformMatrix());
         lightingShader.SetMat4("view", camera.GetLookAtMatrix());
         lightingShader.SetMat4("projection", projection);
+
         lightingShader.SetBool("bEnableLighting", bEnableLighting);
-        lightingShader.SetVec3("light.position", lightSource.Transform.GetPosition());
-        lightingShader.SetVec3("light.ambient", lightAmbient);
-        lightingShader.SetVec3("light.diffuse", lightDiffuse);
-        lightingShader.SetVec3("light.specular", lightSpecular);
+        lightingShader.SetBool("bUseDirectionalLight", bUseDirectionalLight);
+        lightingShader.SetBool("bUsePointLight", bUsePointLight);
+        lightingShader.SetBool("bUseSpotLight", bUseSpotLight);
+    
+        static std::string lightName = "";
+        // Directional light:
+        if (bUseDirectionalLight)
+        {
+            lightName = "dirLight";
+            lightingShader.SetVec3("dirLight.direction", dirLightDirection);
+        }
+
+        // Point light:
+        else if (bUsePointLight)
+        {
+            lightName = "pointLight";
+            lightingShader.SetVec3("pointLight.position", lightSource.Transform.GetPosition());
+            lightingShader.SetFloat("pointLight.attConstant", attConst);
+            lightingShader.SetFloat("pointLight.attLinear", attLinear);
+            lightingShader.SetFloat("pointLight.attQuadratic", attQuad);
+        }
+
+        else if (bUseSpotLight)
+        {
+            lightName = "spotLight";
+            lightingShader.SetVec3("spotLight.position", camera.Transform.GetPosition());
+            lightingShader.SetVec3("spotLight.direction", camera.GetFrontVector());
+            lightingShader.SetFloat("spotLight.innerCutoff", glm::radians(innerCutoff));
+            lightingShader.SetFloat("spotLight.outerCutoff", glm::radians(outerCutoff));
+            lightingShader.SetFloat("spotLight.attConstant", attConst);
+            lightingShader.SetFloat("spotLight.attLinear", attLinear);
+            lightingShader.SetFloat("spotLight.attQuadratic", attQuad);
+        }
+
+        lightingShader.SetVec3(lightName + ".ambient", lightAmbient);
+        lightingShader.SetVec3(lightName + ".diffuse", lightDiffuse);
+        lightingShader.SetVec3(lightName + ".specular", lightSpecular);
         lightingShader.SetVec3("viewPos", camera.Transform.GetPosition());
         
         // USING GOLD SIMPLE MATERIAL:
@@ -460,7 +569,17 @@ void Window::MainLoop()
         lightingShader.SetInt("material.specularMap", woodCrateMat.specularMapTex);
         lightingShader.SetFloat("material.shininess", woodCrateMat.shininess);
 
-        noTexCube.Draw();
+        //lightingShader.SetMat4("model", noTexCube.Transform.GetTransformMatrix());
+        //noTexCube.Draw();
+        for (size_t i = 0; i < 10; i++)
+        {
+            float angle = 20.0f * i;
+            glm::vec3 rot(-0.2f*angle, -1.0f*angle, -0.3f*angle);
+            cubes[i].Transform.SetRotation(rot);
+
+            lightingShader.SetMat4("model", cubes[i].Transform.GetTransformMatrix());
+            cubes[i].Draw();
+        }
 
         lightSourceShader.Use(); 
         lightSourceShader.SetMat4("model", lightSource.Transform.GetTransformMatrix());

@@ -13,6 +13,9 @@ public:
 
     glm::mat4 GetLookAtMatrix() const noexcept;
 
+    inline glm::vec3 GetFrontVector() const noexcept { return m_front; }
+
+public:
     TransformComponent Transform;
 
     float Speed = 1.0f;
