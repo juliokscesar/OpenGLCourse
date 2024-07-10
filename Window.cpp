@@ -17,6 +17,7 @@
 #include "Entity.hpp"
 #include "Camera.hpp"
 #include "Material.hpp"
+#include "UIHelper.hpp"
 
 
 static bool g_bResized = false;
@@ -73,17 +74,8 @@ void Window::Init()
     // enable depth testing
     glEnable(GL_DEPTH_TEST);
 
-    // TODO: take ImGui setup and usage to another file
-    // Dear ImGui context setup
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    // setup imgui style
-    ImGui::StyleColorsDark();
-    // setup platform/rendered backends
-    ImGui_ImplGlfw_InitForOpenGL(m_glfwWindow, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
+    // Initiate ImGui
+    UIHelper::Init(m_glfwWindow);
 }
 
 void Window::MainLoop()
@@ -367,11 +359,9 @@ void Window::MainLoop()
 
 
         // start dear imgui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        UIHelper::NewFrame();
 
-
+        // TODO: take all this ImGui stuff to UIHelper
         // Frame stats window (ms/frame, FPS)
         ImGui::Begin("Frame stats");
 
@@ -492,21 +482,18 @@ void Window::MainLoop()
         }
 
 
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        UIHelper::Render();
 
         glfwSwapBuffers(m_glfwWindow);
         glfwPollEvents();
     }
 
-    Finish();
+    Terminate();
 }
 
-void Window::Finish()
+void Window::Terminate()
 {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+    UIHelper::Terminate();
 
     glfwDestroyWindow(m_glfwWindow);
     glfwTerminate();

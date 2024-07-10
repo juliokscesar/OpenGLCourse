@@ -14,7 +14,7 @@ public:
 
     void Init();
     void MainLoop();
-    void Finish();
+    void Terminate();
 
     inline GLFWwindow* GetGLFWWindow() const noexcept { return m_glfwWindow; }
 
