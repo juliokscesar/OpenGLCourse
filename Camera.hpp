@@ -6,14 +6,8 @@ class Camera
 {
 public:
     Camera()
-        :   Transform(), 
-            m_front(0.0f, 0.0f, 1.0f), 
-            m_up(0.0f, 1.0f, 0.0f), 
-            m_yaw(-90.0f),
-            m_pitch(0.0f),
-            Speed(1.0f), 
-            Sensitivity(1.0f),
-            FOV(45.0f) {}
+        :   m_front(0.0f, 0.0f, 1.0f), 
+            m_up(0.0f, 1.0f, 0.0f) {}
 
     void Update(float deltaTime);
 
@@ -21,10 +15,10 @@ public:
 
     TransformComponent Transform;
 
-    float Speed;
-    float Sensitivity;
+    float Speed = 1.0f;
+    float Sensitivity = 1.0f;
 
-    float FOV;
+    float FOV = 45.0f;
 
 private:
     glm::vec3 m_front;
