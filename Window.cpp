@@ -416,36 +416,17 @@ void Window::MainLoop()
         ImGui::SliderFloat3("LightAmbient", &lightAmbient[0], 0.0f, 1.0f);
         ImGui::SliderFloat3("LightDiffuse", &lightDiffuse[0], 0.0f, 1.0f);
         ImGui::SliderFloat3("LightSpecular", &lightSpecular[0], 0.0f, 1.0f);
-        
-        ImGui::RadioButton("Directional light", &usingLight, 0); ImGui::SameLine();
-        ImGui::RadioButton("Point light", &usingLight, 1); ImGui::SameLine();
-        ImGui::RadioButton("Spotlight (flashlight)", &usingLight, 2);
-    
-        if (usingLight == 0)
-        {
-            bUseDirectionalLight = true;
-            bUsePointLight = false;
-            bUseSpotLight = false;
-        }
-        else if (usingLight == 1)
-        {
-            bUseDirectionalLight = false;
-            bUsePointLight = true;
-            bUseSpotLight = false;
-        }
-        else if (usingLight == 2)
-        {
-            bUseDirectionalLight = false;
-            bUsePointLight = false;
-            bUseSpotLight = true;
-        }
+   
+        ImGui::Checkbox("Directional light", &bUseDirectionalLight); ImGui::SameLine();
+        ImGui::Checkbox("Point light", &bUsePointLight); ImGui::SameLine();
+        ImGui::Checkbox("Spotlight", &bUseSpotLight);
 
         if (bUseDirectionalLight)
         {
             ImGui::Text("Directional Light properties");
             ImGui::SliderFloat3("LightDirection", &dirLightDirection[0], -1.0f, 1.0f);
         }
-        else if (bUsePointLight)
+        if (bUsePointLight)
         {
             ImGui::Text("Point light properties");
             ImGui::SliderFloat("Attenuation constant", &attConst, 0.1f, 1.0f);
@@ -453,10 +434,10 @@ void Window::MainLoop()
             ImGui::SliderFloat("Attenuation quadratic", &attQuad, 0.000001f, 2.0f);
             ImGui::Checkbox("Orbit movment", &bOrbitingCube);
         }
-        else if (bUseSpotLight)
+        if (bUseSpotLight)
         {
             ImGui::Text("Spotlight properties");
-            ImGui::SliderFloat("Inner Cutoff angle (degrees)", &innerCutoff, 0.1f, 180.0f);
+            ImGui::SliderFloat("Inner cutoff angle (degrees)", &innerCutoff, 0.1f, 180.0f);
             ImGui::SliderFloat("Outer cutoff angle (degrees)", &outerCutoff, 0.1f, 180.0f);
             ImGui::SliderFloat("Attenuation constant", &attConst, 0.1f, 1.0f);
             ImGui::SliderFloat("Attenuation linear", &attLinear, 0.0001f, 1.0f);
@@ -516,61 +497,59 @@ void Window::MainLoop()
         lightingShader.SetMat4("view", camera.GetLookAtMatrix());
         lightingShader.SetMat4("projection", projection);
 
-        lightingShader.SetBool("bEnableLighting", bEnableLighting);
-        lightingShader.SetBool("bUseDirectionalLight", bUseDirectionalLight);
-        lightingShader.SetBool("bUsePointLight", bUsePointLight);
-        lightingShader.SetBool("bUseSpotLight", bUseSpotLight);
+        lightingShader.SetBool("u_bEnableLighting", bEnableLighting);
+        lightingShader.SetBool("u_bUseDirectionalLight", bUseDirectionalLight);
+        lightingShader.SetBool("u_bUsePointLight", bUsePointLight);
+        lightingShader.SetBool("u_bUseSpotLight", bUseSpotLight);
     
-        static std::string lightName = "";
         // Directional light:
         if (bUseDirectionalLight)
         {
-            lightName = "dirLight";
-            lightingShader.SetVec3("dirLight.direction", dirLightDirection);
+            lightingShader.SetVec3("u_dirLight.direction", dirLightDirection);
+
+            lightingShader.SetVec3("u_dirLight.ambient", lightAmbient);
+            lightingShader.SetVec3("u_dirLight.diffuse", lightDiffuse);
+            lightingShader.SetVec3("u_dirLight.specular", lightSpecular);
         }
 
         // Point light:
-        else if (bUsePointLight)
+        if (bUsePointLight)
         {
-            lightName = "pointLight";
-            lightingShader.SetVec3("pointLight.position", lightSource.Transform.GetPosition());
-            lightingShader.SetFloat("pointLight.attConstant", attConst);
-            lightingShader.SetFloat("pointLight.attLinear", attLinear);
-            lightingShader.SetFloat("pointLight.attQuadratic", attQuad);
+            lightingShader.SetVec3("u_pointLight.position", lightSource.Transform.GetPosition());
+            lightingShader.SetFloat("u_pointLight.attConstant", attConst);
+            lightingShader.SetFloat("u_pointLight.attLinear", attLinear);
+            lightingShader.SetFloat("u_pointLight.attQuadratic", attQuad);
+
+            lightingShader.SetVec3("u_pointLight.ambient", lightAmbient);
+            lightingShader.SetVec3("u_pointLight.diffuse", lightDiffuse);
+            lightingShader.SetVec3("u_pointLight.specular", lightSpecular);
         }
 
-        else if (bUseSpotLight)
+        // Spotlight
+        if (bUseSpotLight)
         {
-            lightName = "spotLight";
-            lightingShader.SetVec3("spotLight.position", camera.Transform.GetPosition());
-            lightingShader.SetVec3("spotLight.direction", camera.GetFrontVector());
-            lightingShader.SetFloat("spotLight.innerCutoff", glm::radians(innerCutoff));
-            lightingShader.SetFloat("spotLight.outerCutoff", glm::radians(outerCutoff));
-            lightingShader.SetFloat("spotLight.attConstant", attConst);
-            lightingShader.SetFloat("spotLight.attLinear", attLinear);
-            lightingShader.SetFloat("spotLight.attQuadratic", attQuad);
+            lightingShader.SetVec3("u_spotLight.position", camera.Transform.GetPosition());
+            lightingShader.SetVec3("u_spotLight.direction", camera.GetFrontVector());
+            lightingShader.SetFloat("u_spotLight.innerCutoff", glm::radians(innerCutoff));
+            lightingShader.SetFloat("u_spotLight.outerCutoff", glm::radians(outerCutoff));
+            lightingShader.SetFloat("u_spotLight.attConstant", attConst);
+            lightingShader.SetFloat("u_spotLight.attLinear", attLinear);
+            lightingShader.SetFloat("u_spotLight.attQuadratic", attQuad);
+
+            lightingShader.SetVec3("u_spotLight.ambient", lightAmbient);
+            lightingShader.SetVec3("u_spotLight.diffuse", lightDiffuse);
+            lightingShader.SetVec3("u_spotLight.specular", lightSpecular);
         }
 
-        lightingShader.SetVec3(lightName + ".ambient", lightAmbient);
-        lightingShader.SetVec3(lightName + ".diffuse", lightDiffuse);
-        lightingShader.SetVec3(lightName + ".specular", lightSpecular);
-        lightingShader.SetVec3("viewPos", camera.Transform.GetPosition());
+        lightingShader.SetVec3("u_viewPos", camera.Transform.GetPosition());
         
-        // USING GOLD SIMPLE MATERIAL:
-        //lightingShader.SetVec3("material.ambient", gold.ambient);
-        //lightingShader.SetVec3("material.diffuse", gold.diffuse);
-        //lightingShader.SetVec3("material.specular", gold.specular);
-        //lightingShader.SetFloat("material.shininess", gold.shininess);
-
         // USING TEXTURE MATERIAL:
         woodCrateTex.Activate();
         woodCrateSpecular.Activate();
-        lightingShader.SetInt("material.diffuseMap", woodCrateMat.diffuseMapTex);
-        lightingShader.SetInt("material.specularMap", woodCrateMat.specularMapTex);
-        lightingShader.SetFloat("material.shininess", woodCrateMat.shininess);
+        lightingShader.SetInt("u_material.diffuseMap", woodCrateMat.diffuseMapTex);
+        lightingShader.SetInt("u_material.specularMap", woodCrateMat.specularMapTex);
+        lightingShader.SetFloat("u_material.shininess", woodCrateMat.shininess);
 
-        //lightingShader.SetMat4("model", noTexCube.Transform.GetTransformMatrix());
-        //noTexCube.Draw();
         for (size_t i = 0; i < 10; i++)
         {
             float angle = 20.0f * i;
@@ -581,6 +560,8 @@ void Window::MainLoop()
             cubes[i].Draw();
         }
 
+
+        // light source cube (different shader)
         lightSourceShader.Use(); 
         lightSourceShader.SetMat4("model", lightSource.Transform.GetTransformMatrix());
         lightSourceShader.SetMat4("view", camera.GetLookAtMatrix());
@@ -620,7 +601,7 @@ void Window::Terminate()
 
 void Window::updateWindowProperties()
 {
-    // i can't update the member's width and height of the window in the callback
+    // i can't update the members width and height of the window in the callback
     // so this is an ugly turnaround
     int width = 0, height = 0;
     glfwGetWindowSize(m_glfwWindow, &width, &height);
