@@ -17,6 +17,7 @@
 #include "Entity.hpp"
 #include "Camera.hpp"
 #include "Material.hpp"
+#include "Light.hpp"
 #include "UIHelper.hpp"
 
 
@@ -301,7 +302,6 @@ void Window::MainLoop()
 
     // cube to be affected by the light
     Entity noTexCube(cubeNormals);
-    glm::vec3 objColor(1.0f, 0.5f, 0.31f);
 
     // create new mesh only for light (with differnt shader as well)
     StaticMesh lightMesh(
@@ -320,35 +320,48 @@ void Window::MainLoop()
     glm::vec3 lightAmbient(0.2f);
     glm::vec3 lightDiffuse(1.0f);
     glm::vec3 lightSpecular(1.0f);
-    bool bOrbitingCube = false;
+    bool bOrbitingCube = true;
 
     // using directional light
     glm::vec3 dirLightDirection(-0.2f, -1.0f, -0.3f);
+    DirectionalLight dirLight(dirLightDirection, lightAmbient, lightDiffuse, lightSpecular);
 
     // using point light
     // lightPos will be the lightSource position
     float attConst = 1.0f;
     float attLinear = 0.09f;
     float attQuad = 0.032f;
+    PointLight pointLight(
+        lightSource.Transform.GetPosition(), 
+        lightAmbient, lightDiffuse, 
+        lightSpecular, 
+        attConst, 
+        attLinear, 
+        attQuad
+    );
 
     // using spotlight as flashlight
     // light position will be camera position
     // light direction will be camera pointing direction
     float innerCutoff = 12.5f;
     float outerCutoff = 17.5f;
+    SpotLight spotLight(
+        camera.Transform.GetPosition(), 
+        camera.GetFrontVector(), 
+        lightAmbient, 
+        lightDiffuse, 
+        lightSpecular, 
+        innerCutoff, 
+        outerCutoff, 
+        attConst, 
+        attLinear, 
+        attQuad
+    );
 
     bool bEnableLighting = true;
-    bool bUseDirectionalLight = false;
+    bool bUseDirectionalLight = true;
     bool bUsePointLight = true;
-    bool bUseSpotLight = false;
-    int usingLight = 1;
-
-    // SimpleMaterial for the cube
-    SimpleMaterial gold{};
-    gold.ambient = glm::vec3(0.24725f, 0.1995f, 0.0745f);
-    gold.diffuse = glm::vec3(0.75164f, 0.60648f, 0.22648f);
-    gold.specular = glm::vec3(0.628281f, 0.555802f, 0.366065f);
-    gold.shininess = 128.0f * 0.4f;
+    bool bUseSpotLight = true;
 
     // Material using diffuse and specular maps
     Texture2D woodCrateTex("textures/container2.png", false, GL_RGB, GL_RGBA, 0);
@@ -399,52 +412,7 @@ void Window::MainLoop()
         // start dear imgui frame
         UIHelper::NewFrame();
 
-        // TODO: take all this ImGui stuff to UIHelper
-        // Frame stats window (ms/frame, FPS)
-        ImGui::Begin("Frame stats");
-
-        ImGui::Text("Time per frame: %f ms", deltaTime*1000);
-        ImGui::Text("FPS: %f", 1.0f/deltaTime);
-
-        ImGui::End();
-
-        // Window to edit light factors
-        ImGui::Begin("Lighting properties");
-
-        ImGui::Checkbox("Enable lighting", &bEnableLighting);
-
-        ImGui::SliderFloat3("LightAmbient", &lightAmbient[0], 0.0f, 1.0f);
-        ImGui::SliderFloat3("LightDiffuse", &lightDiffuse[0], 0.0f, 1.0f);
-        ImGui::SliderFloat3("LightSpecular", &lightSpecular[0], 0.0f, 1.0f);
-   
-        ImGui::Checkbox("Directional light", &bUseDirectionalLight); ImGui::SameLine();
-        ImGui::Checkbox("Point light", &bUsePointLight); ImGui::SameLine();
-        ImGui::Checkbox("Spotlight", &bUseSpotLight);
-
-        if (bUseDirectionalLight)
-        {
-            ImGui::Text("Directional Light properties");
-            ImGui::SliderFloat3("LightDirection", &dirLightDirection[0], -1.0f, 1.0f);
-        }
-        if (bUsePointLight)
-        {
-            ImGui::Text("Point light properties");
-            ImGui::SliderFloat("Attenuation constant", &attConst, 0.1f, 1.0f);
-            ImGui::SliderFloat("Attenuation linear", &attLinear, 0.0001f, 1.0f);
-            ImGui::SliderFloat("Attenuation quadratic", &attQuad, 0.000001f, 2.0f);
-            ImGui::Checkbox("Orbit movment", &bOrbitingCube);
-        }
-        if (bUseSpotLight)
-        {
-            ImGui::Text("Spotlight properties");
-            ImGui::SliderFloat("Inner cutoff angle (degrees)", &innerCutoff, 0.1f, 180.0f);
-            ImGui::SliderFloat("Outer cutoff angle (degrees)", &outerCutoff, 0.1f, 180.0f);
-            ImGui::SliderFloat("Attenuation constant", &attConst, 0.1f, 1.0f);
-            ImGui::SliderFloat("Attenuation linear", &attLinear, 0.0001f, 1.0f);
-            ImGui::SliderFloat("Attenuation quadratic", &attQuad, 0.000001f, 2.0f);
-        }
-
-        ImGui::End();
+        UIHelper::FrameStatsWindow(deltaTime);
 
         if (g_bResized)
             this->updateWindowProperties();
@@ -505,40 +473,47 @@ void Window::MainLoop()
         // Directional light:
         if (bUseDirectionalLight)
         {
-            lightingShader.SetVec3("u_dirLight.direction", dirLightDirection);
+            lightingShader.SetVec3("u_dirLight.direction", dirLight.Direction);
 
-            lightingShader.SetVec3("u_dirLight.ambient", lightAmbient);
-            lightingShader.SetVec3("u_dirLight.diffuse", lightDiffuse);
-            lightingShader.SetVec3("u_dirLight.specular", lightSpecular);
+            lightingShader.SetVec3("u_dirLight.ambient", dirLight.Ambient);
+            lightingShader.SetVec3("u_dirLight.diffuse", dirLight.Diffuse);
+            lightingShader.SetVec3("u_dirLight.specular", dirLight.Specular);
         }
 
         // Point light:
         if (bUsePointLight)
         {
-            lightingShader.SetVec3("u_pointLight.position", lightSource.Transform.GetPosition());
-            lightingShader.SetFloat("u_pointLight.attConstant", attConst);
-            lightingShader.SetFloat("u_pointLight.attLinear", attLinear);
-            lightingShader.SetFloat("u_pointLight.attQuadratic", attQuad);
+            // update position
+            pointLight.Position = lightSource.Transform.GetPosition();
 
-            lightingShader.SetVec3("u_pointLight.ambient", lightAmbient);
-            lightingShader.SetVec3("u_pointLight.diffuse", lightDiffuse);
-            lightingShader.SetVec3("u_pointLight.specular", lightSpecular);
+            lightingShader.SetVec3("u_pointLight.position", pointLight.Position);
+            lightingShader.SetFloat("u_pointLight.attConstant", pointLight.Attenuation.Constant);
+            lightingShader.SetFloat("u_pointLight.attLinear", pointLight.Attenuation.Linear);
+            lightingShader.SetFloat("u_pointLight.attQuadratic", pointLight.Attenuation.Quadratic);
+
+            lightingShader.SetVec3("u_pointLight.ambient", pointLight.Ambient);
+            lightingShader.SetVec3("u_pointLight.diffuse", pointLight.Diffuse);
+            lightingShader.SetVec3("u_pointLight.specular", pointLight.Specular);
         }
 
         // Spotlight
         if (bUseSpotLight)
         {
-            lightingShader.SetVec3("u_spotLight.position", camera.Transform.GetPosition());
-            lightingShader.SetVec3("u_spotLight.direction", camera.GetFrontVector());
-            lightingShader.SetFloat("u_spotLight.innerCutoff", glm::radians(innerCutoff));
-            lightingShader.SetFloat("u_spotLight.outerCutoff", glm::radians(outerCutoff));
-            lightingShader.SetFloat("u_spotLight.attConstant", attConst);
-            lightingShader.SetFloat("u_spotLight.attLinear", attLinear);
-            lightingShader.SetFloat("u_spotLight.attQuadratic", attQuad);
+            // update position and direction
+            spotLight.Position = camera.Transform.GetPosition();
+            spotLight.Direction = camera.GetFrontVector();
 
-            lightingShader.SetVec3("u_spotLight.ambient", lightAmbient);
-            lightingShader.SetVec3("u_spotLight.diffuse", lightDiffuse);
-            lightingShader.SetVec3("u_spotLight.specular", lightSpecular);
+            lightingShader.SetVec3("u_spotLight.position", spotLight.Position);
+            lightingShader.SetVec3("u_spotLight.direction", spotLight.Direction);
+            lightingShader.SetFloat("u_spotLight.innerCutoff", glm::radians(spotLight.InnerCutoff));
+            lightingShader.SetFloat("u_spotLight.outerCutoff", glm::radians(spotLight.OuterCutoff));
+            lightingShader.SetFloat("u_spotLight.attConstant", spotLight.Attenuation.Constant);
+            lightingShader.SetFloat("u_spotLight.attLinear", spotLight.Attenuation.Linear);
+            lightingShader.SetFloat("u_spotLight.attQuadratic", spotLight.Attenuation.Quadratic);
+
+            lightingShader.SetVec3("u_spotLight.ambient", spotLight.Ambient);
+            lightingShader.SetVec3("u_spotLight.diffuse", spotLight.Diffuse);
+            lightingShader.SetVec3("u_spotLight.specular", spotLight.Specular);
         }
 
         lightingShader.SetVec3("u_viewPos", camera.Transform.GetPosition());

@@ -37,4 +37,15 @@ namespace UIHelper
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
     }
+
+    void FrameStatsWindow(float deltaTime)
+    {
+         // Frame stats window (ms/frame, FPS)
+        ImGui::Begin("Frame stats");
+
+        ImGui::Text("Time per frame: %f ms", deltaTime*1000);
+        ImGui::Text("FPS: %f", 1.0f/deltaTime);
+
+        ImGui::End();
+    }
 }

@@ -5,12 +5,12 @@
 #endif
 #include <stb/stb_image.h>
 
-Texture2D::Texture2D(const std::string &imgPath, bool flip, int internalFormat, GLenum format, GLenum texUnit)
+Texture2D::Texture2D(const std::string &imgPath, bool flip, int internalFormat, GLenum format, int texUnit)
 {
     Init(imgPath, flip, internalFormat, format, texUnit);
 }
 
-void Texture2D::Init(const std::string &imgPath, bool flip, int internalFormat, GLenum format, GLenum texUnit)
+void Texture2D::Init(const std::string &imgPath, bool flip, int internalFormat, GLenum format, int texUnit)
 {
     stbi_set_flip_vertically_on_load(flip);
     int width, height, nrChannels;

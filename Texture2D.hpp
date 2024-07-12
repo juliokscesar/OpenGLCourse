@@ -10,9 +10,9 @@ public:
     Texture2D()
         : m_id(0), m_texUnit(0) {}
 
-    Texture2D(const std::string& imgPath, bool flip, int internalFormat, GLenum format, GLenum texUnit=GL_TEXTURE0);
+    Texture2D(const std::string& imgPath, bool flip, int internalFormat, GLenum format, int texUnit=0);
 
-    void Init(const std::string& imgPath, bool flip, int internalFormat, GLenum format, GLenum texUnit=GL_TEXTURE0);
+    void Init(const std::string& imgPath, bool flip, int internalFormat, GLenum format, int texUnit=0);
 
     void Activate() const noexcept;
 

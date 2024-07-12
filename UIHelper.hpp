@@ -12,4 +12,6 @@ namespace UIHelper
     void NewFrame();
     void Render();
     void Terminate();
+
+    void FrameStatsWindow(float deltaTime);
 }
