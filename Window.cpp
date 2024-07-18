@@ -10,6 +10,8 @@
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 
+#include <stb/stb_image.h>
+
 #include "Input.hpp"
 #include "StaticMesh.hpp"
 #include "Shader.hpp"
@@ -19,6 +21,8 @@
 #include "Material.hpp"
 #include "Light.hpp"
 #include "UIHelper.hpp"
+#include "ModelFactory.hpp"
+#include "glm/ext/matrix_transform.hpp"
 
 
 static bool g_bResized = false;
@@ -70,13 +74,15 @@ void Window::Init()
     glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     
     // Init mouse and keyboard callbacks
-    Input::Init(m_glfwWindow);
+    Input::RegisterCallbacks(m_glfwWindow);
 
     // enable depth testing
     glEnable(GL_DEPTH_TEST);
 
     // Initiate ImGui
     UIHelper::Init(m_glfwWindow);
+
+    stbi_set_flip_vertically_on_load(true);
 }
 
 void Window::MainLoop()
@@ -398,6 +404,17 @@ void Window::MainLoop()
     }
 
 
+    // TODO: change entity class to include a model
+    
+    // TODO delete StaticMesh and Texture2D classess
+    
+    // =============================================
+    // USING MODELS
+    // =============================================
+    Model backpack("models/backpack/backpack.obj");
+
+    Shader modelShader("shaders/model3d_vert.glsl", "shaders/model3d_frag.glsl");
+
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
     while (!glfwWindowShouldClose(m_glfwWindow))
@@ -424,30 +441,35 @@ void Window::MainLoop()
         
         // TODO: make this 'check once' better
         // Toggle mouse cursor capture and thus camera mouse movement 
-        static bool changed = false;
-        if (Input::GetKeyState(GLFW_KEY_TAB) && !changed)
+        static bool tabChanged = false;
+        if (Input::GetKeyState(GLFW_KEY_TAB) && !tabChanged)
         {
             int cursor = glfwGetInputMode(m_glfwWindow, GLFW_CURSOR);
             int mode = (cursor == GLFW_CURSOR_DISABLED) ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
             glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, mode);
 
-            changed = true;
+            tabChanged = true;
         }
-        else if (!Input::GetKeyState(GLFW_KEY_TAB) && changed)
+        else if (!Input::GetKeyState(GLFW_KEY_TAB) && tabChanged)
         {
-            changed = false;
+            tabChanged = false;
         }
 
-        // Currently activate texture before drawing the object, so the object uses the activated textures
-        // Ideally it's better to activate the textures in the Draw function, but it's best to way for a Material class
-        //containerTex.Activate();
-        //romaTex.Activate();
-        //rectShader.Use();  
-        //rectangle.Draw();
+        static bool pChanged = false;
+        if (Input::GetKeyState(GLFW_KEY_P) && !pChanged)
+        {
+            int polygonMode[2];
+            glGetIntegerv(GL_POLYGON_MODE, polygonMode);
+            if (polygonMode[1] == GL_FILL)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            else
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            
+            pChanged = true;
+        }
+        else if (!Input::GetKeyState(GLFW_KEY_P) && pChanged)
+            pChanged = false;
 
-        //atlasTex.Activate();
-        //triangleShader.Use();
-        //triangle.Draw();
 
         camera.Update(deltaTime);
 
@@ -460,102 +482,111 @@ void Window::MainLoop()
 
 
         // lighting 
-        lightingShader.Use();
-        //lightingShader.SetMat4("model", noTexCube.Transform.GetTransformMatrix());
-        lightingShader.SetMat4("view", camera.GetLookAtMatrix());
-        lightingShader.SetMat4("projection", projection);
+        /* lightingShader.Use(); */
+        /* //lightingShader.SetMat4("model", noTexCube.Transform.GetTransformMatrix()); */
+        /* lightingShader.SetMat4("view", camera.GetLookAtMatrix()); */
+        /* lightingShader.SetMat4("projection", projection); */
 
-        lightingShader.SetBool("u_bEnableLighting", bEnableLighting);
-        lightingShader.SetBool("u_bUseDirectionalLight", bUseDirectionalLight);
-        lightingShader.SetBool("u_bUsePointLight", bUsePointLight);
-        lightingShader.SetBool("u_bUseSpotLight", bUseSpotLight);
+        /* lightingShader.SetBool("u_bEnableLighting", bEnableLighting); */
+        /* lightingShader.SetBool("u_bUseDirectionalLight", bUseDirectionalLight); */
+        /* lightingShader.SetBool("u_bUsePointLight", bUsePointLight); */
+        /* lightingShader.SetBool("u_bUseSpotLight", bUseSpotLight); */
     
-        // Directional light:
-        if (bUseDirectionalLight)
-        {
-            lightingShader.SetVec3("u_dirLight.direction", dirLight.Direction);
+        /* // Directional light: */
+        /* if (bUseDirectionalLight) */
+        /* { */
+        /*     lightingShader.SetVec3("u_dirLight.direction", dirLight.Direction); */
 
-            lightingShader.SetVec3("u_dirLight.ambient", dirLight.Ambient);
-            lightingShader.SetVec3("u_dirLight.diffuse", dirLight.Diffuse);
-            lightingShader.SetVec3("u_dirLight.specular", dirLight.Specular);
-        }
+        /*     lightingShader.SetVec3("u_dirLight.ambient", dirLight.Ambient); */
+        /*     lightingShader.SetVec3("u_dirLight.diffuse", dirLight.Diffuse); */
+        /*     lightingShader.SetVec3("u_dirLight.specular", dirLight.Specular); */
+        /* } */
 
-        // Point light:
-        if (bUsePointLight)
-        {
-            // update position
-            pointLight.Position = lightSource.Transform.GetPosition();
+        /* // Point light: */
+        /* if (bUsePointLight) */
+        /* { */
+        /*     // update position */
+        /*     pointLight.Position = lightSource.Transform.GetPosition(); */
 
-            lightingShader.SetVec3("u_pointLight.position", pointLight.Position);
-            lightingShader.SetFloat("u_pointLight.attConstant", pointLight.Attenuation.Constant);
-            lightingShader.SetFloat("u_pointLight.attLinear", pointLight.Attenuation.Linear);
-            lightingShader.SetFloat("u_pointLight.attQuadratic", pointLight.Attenuation.Quadratic);
+        /*     lightingShader.SetVec3("u_pointLight.position", pointLight.Position); */
+        /*     lightingShader.SetFloat("u_pointLight.attConstant", pointLight.Attenuation.Constant); */
+        /*     lightingShader.SetFloat("u_pointLight.attLinear", pointLight.Attenuation.Linear); */
+        /*     lightingShader.SetFloat("u_pointLight.attQuadratic", pointLight.Attenuation.Quadratic); */
 
-            lightingShader.SetVec3("u_pointLight.ambient", pointLight.Ambient);
-            lightingShader.SetVec3("u_pointLight.diffuse", pointLight.Diffuse);
-            lightingShader.SetVec3("u_pointLight.specular", pointLight.Specular);
-        }
+        /*     lightingShader.SetVec3("u_pointLight.ambient", pointLight.Ambient); */
+        /*     lightingShader.SetVec3("u_pointLight.diffuse", pointLight.Diffuse); */
+        /*     lightingShader.SetVec3("u_pointLight.specular", pointLight.Specular); */
+        /* } */
 
-        // Spotlight
-        if (bUseSpotLight)
-        {
-            // update position and direction
-            spotLight.Position = camera.Transform.GetPosition();
-            spotLight.Direction = camera.GetFrontVector();
+        /* // Spotlight */
+        /* if (bUseSpotLight) */
+        /* { */
+        /*     // update position and direction */
+        /*     spotLight.Position = camera.Transform.GetPosition(); */
+        /*     spotLight.Direction = camera.GetFrontVector(); */
 
-            lightingShader.SetVec3("u_spotLight.position", spotLight.Position);
-            lightingShader.SetVec3("u_spotLight.direction", spotLight.Direction);
-            lightingShader.SetFloat("u_spotLight.innerCutoff", glm::radians(spotLight.InnerCutoff));
-            lightingShader.SetFloat("u_spotLight.outerCutoff", glm::radians(spotLight.OuterCutoff));
-            lightingShader.SetFloat("u_spotLight.attConstant", spotLight.Attenuation.Constant);
-            lightingShader.SetFloat("u_spotLight.attLinear", spotLight.Attenuation.Linear);
-            lightingShader.SetFloat("u_spotLight.attQuadratic", spotLight.Attenuation.Quadratic);
+        /*     lightingShader.SetVec3("u_spotLight.position", spotLight.Position); */
+        /*     lightingShader.SetVec3("u_spotLight.direction", spotLight.Direction); */
+        /*     lightingShader.SetFloat("u_spotLight.innerCutoff", glm::radians(spotLight.InnerCutoff)); */
+        /*     lightingShader.SetFloat("u_spotLight.outerCutoff", glm::radians(spotLight.OuterCutoff)); */
+        /*     lightingShader.SetFloat("u_spotLight.attConstant", spotLight.Attenuation.Constant); */
+        /*     lightingShader.SetFloat("u_spotLight.attLinear", spotLight.Attenuation.Linear); */
+        /*     lightingShader.SetFloat("u_spotLight.attQuadratic", spotLight.Attenuation.Quadratic); */
 
-            lightingShader.SetVec3("u_spotLight.ambient", spotLight.Ambient);
-            lightingShader.SetVec3("u_spotLight.diffuse", spotLight.Diffuse);
-            lightingShader.SetVec3("u_spotLight.specular", spotLight.Specular);
-        }
+        /*     lightingShader.SetVec3("u_spotLight.ambient", spotLight.Ambient); */
+        /*     lightingShader.SetVec3("u_spotLight.diffuse", spotLight.Diffuse); */
+        /*     lightingShader.SetVec3("u_spotLight.specular", spotLight.Specular); */
+        /* } */
 
-        lightingShader.SetVec3("u_viewPos", camera.Transform.GetPosition());
+        /* lightingShader.SetVec3("u_viewPos", camera.Transform.GetPosition()); */
         
-        // USING TEXTURE MATERIAL:
-        woodCrateTex.Activate();
-        woodCrateSpecular.Activate();
-        lightingShader.SetInt("u_material.diffuseMap", woodCrateMat.diffuseMapTex);
-        lightingShader.SetInt("u_material.specularMap", woodCrateMat.specularMapTex);
-        lightingShader.SetFloat("u_material.shininess", woodCrateMat.shininess);
+        /* // USING TEXTURE MATERIAL: */
+        /* woodCrateTex.Activate(); */
+        /* woodCrateSpecular.Activate(); */
+        /* lightingShader.SetInt("u_material.diffuseMap", woodCrateMat.diffuseMapTex); */
+        /* lightingShader.SetInt("u_material.specularMap", woodCrateMat.specularMapTex); */
+        /* lightingShader.SetFloat("u_material.shininess", woodCrateMat.shininess); */
 
-        for (size_t i = 0; i < 10; i++)
-        {
-            float angle = 20.0f * i;
-            glm::vec3 rot(-0.2f*angle, -1.0f*angle, -0.3f*angle);
-            cubes[i].Transform.SetRotation(rot);
+        /* for (size_t i = 0; i < 10; i++) */
+        /* { */
+        /*     float angle = 20.0f * i; */
+        /*     glm::vec3 rot(-0.2f*angle, -1.0f*angle, -0.3f*angle); */
+        /*     cubes[i].Transform.SetRotation(rot); */
 
-            lightingShader.SetMat4("model", cubes[i].Transform.GetTransformMatrix());
-            cubes[i].Draw();
-        }
-
-
-        // light source cube (different shader)
-        lightSourceShader.Use(); 
-        lightSourceShader.SetMat4("model", lightSource.Transform.GetTransformMatrix());
-        lightSourceShader.SetMat4("view", camera.GetLookAtMatrix());
-        lightSourceShader.SetMat4("projection", projection);
-        lightSourceShader.SetVec3("lightColor", lightDiffuse);
-        lightSource.Draw();
+        /*     lightingShader.SetMat4("model", cubes[i].Transform.GetTransformMatrix()); */
+        /*     cubes[i].Draw(); */
+        /* } */
 
 
-        // light orbiting around cube
-        if (bOrbitingCube)
-        {
-            float radius = 2.0f;
-            float time = static_cast<float>(glfwGetTime());
-            float light_x = radius * std::sin(time);
-            float light_z = radius * std::cos(time);
-            float light_y = 1.0f;
-            lightSource.Transform.SetPosition(glm::vec3(light_x, light_y, light_z));
-        }
+        /* // light source cube (different shader) */
+        /* lightSourceShader.Use(); */ 
+        /* lightSourceShader.SetMat4("model", lightSource.Transform.GetTransformMatrix()); */
+        /* lightSourceShader.SetMat4("view", camera.GetLookAtMatrix()); */
+        /* lightSourceShader.SetMat4("projection", projection); */
+        /* lightSourceShader.SetVec3("lightColor", lightDiffuse); */
+        /* lightSource.Draw(); */
 
+
+        /* // light orbiting around cube */
+        /* if (bOrbitingCube) */
+        /* { */
+        /*     float radius = 10.0f; */
+        /*     float time = static_cast<float>(glfwGetTime()); */
+        /*     float light_x = radius * std::sin(time); */
+        /*     float light_z = radius * std::cos(time); */
+        /*     float light_y = 1.0f; */
+        /*     lightSource.Transform.SetPosition(glm::vec3(light_x, light_y, light_z)); */
+        /* } */
+
+	modelShader.Use();
+	modelShader.SetMat4("u_projection", projection);
+	modelShader.SetMat4("u_view", camera.GetLookAtMatrix());
+
+	glm::mat4 backpackTrans(1.0f);
+	backpackTrans = glm::translate(backpackTrans, glm::vec3(0.0f, 0.0f, 0.0f));
+	modelShader.SetMat4("u_model", backpackTrans);
+
+	backpack.Draw(modelShader);
 
         UIHelper::Render();
 

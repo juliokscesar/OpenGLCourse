@@ -1,8 +1,6 @@
 #include "Texture2D.hpp"
+#include <iostream>
 
-#ifndef STB_IMAGE_IMPLEMENTATION
-    #define STB_IMAGE_IMPLEMENTATION
-#endif
 #include <stb/stb_image.h>
 
 Texture2D::Texture2D(const std::string &imgPath, bool flip, int internalFormat, GLenum format, int texUnit)
@@ -15,7 +13,7 @@ void Texture2D::Init(const std::string &imgPath, bool flip, int internalFormat, 
     stbi_set_flip_vertically_on_load(flip);
     int width, height, nrChannels;
     unsigned char* data = stbi_load(imgPath.c_str(), &width, &height, &nrChannels, 0);
-
+    
     m_texUnit = texUnit;
     glActiveTexture(texUnit + GL_TEXTURE0);
 

@@ -85,7 +85,7 @@ bool Input::GetKeyState(int key) noexcept
     return keysState[key];
 }
 
-void Input::Init(GLFWwindow* window)
+void Input::RegisterCallbacks(GLFWwindow* window)
 {
     glfwSetKeyCallback(window, keyInputCallback);
     glfwSetCursorPosCallback(window, mouseMoveCallback);

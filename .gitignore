@@ -1,4 +1,6 @@
 .vscode/
 *prog*
+build/
+*compile_commands*
 
 imgui.ini

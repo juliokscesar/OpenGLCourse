@@ -1,1 +1,0 @@
-g++ -o old_prog ext/glad/src/glad.c old_main.cpp Shader.cpp -Iext/ -Iext/glad/include/ -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl

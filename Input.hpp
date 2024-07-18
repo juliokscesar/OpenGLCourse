@@ -10,7 +10,7 @@ namespace Input
 
     bool GetKeyState(int key) noexcept;
 
-    void Init(GLFWwindow* window);
+    void RegisterCallbacks(GLFWwindow* window);
 
     void AddKeyListener(int key);
 
