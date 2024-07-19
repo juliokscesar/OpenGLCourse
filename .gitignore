@@ -2,5 +2,6 @@
 *prog*
 build/
 *compile_commands*
+.cache/
 
 imgui.ini

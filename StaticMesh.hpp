@@ -2,7 +2,6 @@
 
 #include <glad/glad.h>
 
-#include "Shader.hpp"
 
 class StaticMesh
 {

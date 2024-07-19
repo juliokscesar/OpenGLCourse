@@ -7,7 +7,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
 
+#include "Debug.hpp"
 
 Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath)
 {
@@ -86,6 +88,7 @@ void Shader::Init(const std::string &vertexPath, const std::string &fragmentPath
     glAttachShader(ID, m_vertexID);
     glAttachShader(ID, m_fragID);
     glLinkProgram(ID);
+    glValidateProgram(ID);
 
     // check for linking errors
     glGetProgramiv(ID, GL_LINK_STATUS, &success);
@@ -95,8 +98,11 @@ void Shader::Init(const std::string &vertexPath, const std::string &fragmentPath
         std::cout << "Error linking shader program of " << vertexPath << ", " << fragmentPath << ": " << infoLog << "\n";
     }
 
-    // delete shaders
+    // delete and detach shaders
+    glDetachShader(ID, m_vertexID);
     glDeleteShader(m_vertexID);
+
+    glDetachShader(ID, m_fragID);
     glDeleteShader(m_fragID);
 
     Use();
@@ -129,11 +135,12 @@ void Shader::SetFloat(const std::string &name, float val) const noexcept
 void Shader::SetMat4(const std::string &name, const glm::mat4 &m) const noexcept
 {
     GLint loc = glGetUniformLocation(ID, name.c_str());
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m));
+    glUniformMatrix4fv(loc, 1, GL_FALSE, &m[0][0]); 
+    glCheckError(std::string("setting uniform mat4: " + name + " at loc=" + std::to_string(loc)).c_str()); 
 }
 
 void Shader::SetVec3(const std::string &name, const glm::vec3 &v) const noexcept
 {
     GLint loc = glGetUniformLocation(ID, name.c_str());
-    glUniform3fv(loc, 1, glm::value_ptr(v));
+    glUniform3fv(loc, 1, &v[0]);
 }

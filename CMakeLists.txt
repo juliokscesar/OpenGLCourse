@@ -3,6 +3,8 @@ project(OpenGLCourse)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+#set(CMAKE_CXX_STANDARD 20)
+
 set(GLAD_DIR ext/glad)
 set(GLAD_SRC ${GLAD_DIR}/src/glad.c)
 
@@ -23,13 +25,11 @@ set(SRC
     Shader.cpp
     Window.cpp
     Input.cpp
-    StaticMesh.cpp
-    Texture2D.cpp
-    Entity.cpp
     TransformComponent.cpp
     Camera.cpp
     UIHelper.cpp
     ModelFactory.cpp
+    StaticMesh.cpp
 )
 
 add_executable(prog
