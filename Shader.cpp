@@ -9,8 +9,6 @@
 #include <sstream>
 #include <string>
 
-#include "Debug.hpp"
-
 Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath)
 {
     Init(vertexPath, fragmentPath);
@@ -136,7 +134,6 @@ void Shader::SetMat4(const std::string &name, const glm::mat4 &m) const noexcept
 {
     GLint loc = glGetUniformLocation(ID, name.c_str());
     glUniformMatrix4fv(loc, 1, GL_FALSE, &m[0][0]); 
-    glCheckError(std::string("setting uniform mat4: " + name + " at loc=" + std::to_string(loc)).c_str()); 
 }
 
 void Shader::SetVec3(const std::string &name, const glm::vec3 &v) const noexcept

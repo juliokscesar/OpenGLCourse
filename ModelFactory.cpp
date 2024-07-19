@@ -1,4 +1,5 @@
 #include "ModelFactory.hpp"
+#include "assimp/types.h"
 
 #include <glad/glad.h>
 
@@ -86,8 +87,8 @@ unsigned int LoadTextureFromFile(const std::string &path)
 
 
 
-Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Texture>& textures)
-    : Vertices(vertices), Indices(indices), Textures(textures)
+Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const Material& material)
+    : Vertices(vertices), Indices(indices), Mat(material)
 {
     setupRenderData();
 }
@@ -157,41 +158,50 @@ void Mesh::ActivateTexturesInShader(const Shader& shader)
 
     constexpr unsigned int MAX_NUMBER_SAMPLER2D = 15;
 
-    const size_t texturesSize = Textures.size();
-    if (texturesSize > MAX_NUMBER_SAMPLER2D)
+    const size_t diffuseSize = Mat.DiffuseMaps.size();
+    const size_t specularSize = Mat.SpecularMaps.size();
+
+    if (diffuseSize > MAX_NUMBER_SAMPLER2D)
     {
-	std::cout << "Textures of size " << texturesSize << " exceeds MAX_NUMBER_SAMPLER2D of " << MAX_NUMBER_SAMPLER2D << '\n';
+	std::cout << "Diffuse textures of size " << diffuseSize << "exceeds MAX_NUMBER_SAMPLER2D of " << MAX_NUMBER_SAMPLER2D << '\n';
 	return;
     }
 
-    unsigned int diffuseNr = 1;
-    unsigned int specularNr = 1;
-    for (int i = 0; i < texturesSize; i++)
+    if (specularSize > MAX_NUMBER_SAMPLER2D)
     {
-	glActiveTexture(GL_TEXTURE0 + i);
-
-	char texIndex;
-	std::string texName;
-	if (Textures[i].Type == TextureType::DIFFUSE)
-	{
-	    texIndex = (diffuseNr - 1) + '0';
-	    diffuseNr++;
-	    texName = "texture_diffuse";
-	}
-	else if (Textures[i].Type == TextureType::SPECULAR)
-	{
-	    texIndex = (specularNr - 1) + '0';
-	    specularNr++;
-	    texName = "texture_specular";
-	}
-
-	const std::string uniformTex = "u_material." + texName + '[' + texIndex + ']';
-	shader.SetInt(uniformTex, i);
-	glBindTexture(GL_TEXTURE_2D, Textures[i].glID);	
+	std::cout << "Specular textures of size " << specularSize << "exceeds MAX_NUMBER_SAMPLER2D of " << MAX_NUMBER_SAMPLER2D << '\n';
+	return;
     }
 
-    glActiveTexture(GL_TEXTURE0);
+    // set diffuse textures in EVEN-numbered texture units
+    for (int unit = 0, count = 0; count < diffuseSize; count++)
+    {
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(GL_TEXTURE_2D, Mat.DiffuseMaps[count].glID);
 
+	char texIndex = count + '0';
+	const std::string uniformTex(std::string("u_material.texture_diffuse[") + texIndex + ']');
+	shader.SetInt(uniformTex, unit);
+
+	unit += 2;
+    }
+
+    // set specular textures in ODD-numbered texture units
+    for (int unit = 1, count = 0; count < specularSize; count++)
+    {
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(GL_TEXTURE_2D, Mat.SpecularMaps[count].glID);
+
+	char texIndex = count + '0';
+	const std::string uniformTex(std::string("u_material.texture_specular[") + texIndex + ']');
+	shader.SetInt(uniformTex, unit);
+
+	unit += 2;
+    }
+
+    shader.SetFloat("u_material.shininess", Mat.Shininess);
+
+    glActiveTexture(GL_TEXTURE0);
 }
 
 // TODO: take shader out of this function 
@@ -319,24 +329,27 @@ Mesh ObjectLoader::ProcessAssimpMesh(aiMesh *mesh, const aiScene *scene)
     }
 
     /// Process mesh materials
-    std::vector<Texture> textures;
+    Material meshMaterial;
 
     if (mesh->mMaterialIndex >= 0)
     {
 	aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
 
 	// Take diffuse maps
-	std::vector<Texture> diffuseMaps = LoadMaterialTextures(mat, aiTextureType_DIFFUSE);
-
-	textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+	meshMaterial.DiffuseMaps = LoadMaterialTextures(mat, aiTextureType_DIFFUSE);
 
 	// now take specular maps
-	std::vector<Texture> specularMaps = LoadMaterialTextures(mat, aiTextureType_SPECULAR);
+	meshMaterial.SpecularMaps = LoadMaterialTextures(mat, aiTextureType_SPECULAR);
 
-	textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+	// and finally material shininess
+	float shininess; 
+	if (aiGetMaterialFloat(mat, AI_MATKEY_SHININESS, &shininess) != AI_SUCCESS)
+	    shininess = 20.0f; // set default value if cant get shininess
+
+	meshMaterial.Shininess = shininess;
     }
 
-    return Mesh(vertices, indices, textures);
+    return Mesh(vertices, indices, meshMaterial);
 }
 
 std::vector<Texture> ObjectLoader::LoadMaterialTextures(aiMaterial *mat, aiTextureType type)

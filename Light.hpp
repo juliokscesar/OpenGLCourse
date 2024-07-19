@@ -2,6 +2,10 @@
 
 #include <glm/glm.hpp>
 
+#include <string>
+
+#include "Shader.hpp"
+
 struct AttenuationProperties
 {
     AttenuationProperties()
@@ -26,6 +30,10 @@ struct Light
     glm::vec3 Ambient;
     glm::vec3 Diffuse;
     glm::vec3 Specular;
+
+    std::string UniformName;
+
+    virtual void SetLightUniforms(const Shader& shader);
 };
 
 struct DirectionalLight : public Light
@@ -37,6 +45,8 @@ struct DirectionalLight : public Light
         : Light(ambient, diffuse, specular), Direction(direction) {}
 
     glm::vec3 Direction;
+
+    void SetLightUniforms(const Shader& shader) override;
 };
 
 struct PointLight : public Light
@@ -53,6 +63,8 @@ struct PointLight : public Light
     glm::vec3 Position;
 
     AttenuationProperties Attenuation;
+    
+    void SetLightUniforms(const Shader& shader) override;
 };
 
 struct SpotLight : public Light
@@ -70,4 +82,6 @@ struct SpotLight : public Light
     float OuterCutoff;
 
     AttenuationProperties Attenuation;
+
+    void SetLightUniforms(const Shader& shader) override;
 };

@@ -4,7 +4,6 @@
 
 #include <assimp/scene.h>
 
-#include <iostream>
 #include <vector>
 
 #include "Shader.hpp"
@@ -37,6 +36,15 @@ unsigned int LoadTextureFromFile(const std::string& path);
 
 ///////////////////////////////
 
+
+struct Material
+{
+    std::vector<Texture> DiffuseMaps;
+    std::vector<Texture> SpecularMaps;
+    float Shininess;
+};
+
+
 ///////////////////////////////
 /// MESH & MODEL DECLARATIONS
 ///////////////////////////////
@@ -44,13 +52,13 @@ unsigned int LoadTextureFromFile(const std::string& path);
 class Mesh
 {
 public:
-    Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Texture>& textures);
+    Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const Material& material);
 
     Mesh(const Mesh& other)
 	:
 	Vertices(other.Vertices),
 	Indices(other.Indices),
-	Textures(other.Textures),
+	Mat(other.Mat),
 	m_VAO(other.m_VAO), 
 	m_VBO(other.m_VBO), 
 	m_EBO(other.m_EBO) {}
@@ -59,7 +67,7 @@ public:
 	: 
 	Vertices(std::move(other.Vertices)),
 	Indices(std::move(other.Indices)),
-	Textures(std::move(other.Textures)),
+	Mat(std::move(other.Mat)),
 	m_VAO(std::move(other.m_VAO)), 
 	m_VBO(std::move(other.m_VBO)), 
 	m_EBO(std::move(other.m_EBO)) {}
@@ -70,7 +78,7 @@ public:
 	{
 	    this->Vertices = other.Vertices;
 	    this->Indices = other.Indices;
-	    this->Textures = other.Textures;
+	    this->Mat = other.Mat;
 
 	    this->m_VAO = other.m_VAO;
 	    this->m_VBO = other.m_VBO;
@@ -86,7 +94,7 @@ public:
 	{
 	    this->Vertices = std::move(other.Vertices);
 	    this->Indices = std::move(other.Indices);
-	    this->Textures = std::move(other.Textures);
+	    this->Mat = std::move(other.Mat);
 
 	    this->m_VAO = std::move(other.m_VAO);
 	    this->m_VBO = std::move(other.m_VBO);
@@ -100,11 +108,6 @@ public:
 
     void Draw(const Shader& shader);
 
-    inline void PrintInfo() const noexcept
-    {
-	std::cout << "VAO=" << m_VAO << " VBO=" << m_VBO << " EBO=" << m_EBO << " VerticesSize=" << Vertices.size() << " IndicesSize=" << Indices.size() << " TexturesSize=" << Textures.size() << '\n';
-    }
-
 private:
     void setupRenderData();
 
@@ -112,7 +115,7 @@ public:
     // Loaded mesh data
     std::vector<Vertex>		Vertices;
     std::vector<unsigned int>	Indices;
-    std::vector<Texture>	Textures;
+    Material			Mat;
 
 private:
     unsigned int m_VAO = 0;

@@ -18,12 +18,17 @@
 #include "ModelFactory.hpp"
 #include "StaticMesh.hpp"
 #include "Entity.hpp"
+#include "Light.hpp"
 
 static bool g_bResized = false;
+static struct {int newWidth; int newHeight; } g_updatedProperties;
 void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
     g_bResized = true;
+    
+    g_updatedProperties.newWidth = width;
+    g_updatedProperties.newHeight = height;
 }
 
 void Window::Init()
@@ -150,7 +155,7 @@ void Window::MainLoop()
     cubeShader.SetVec3("customColor", glm::vec3(1.0f, 1.0f, 1.0f));
     
     StaticMeshEntity cubeEntity(cubeMesh);
-    cubeEntity.Transform.SetPosition(glm::vec3(0.0f, 3.0f, 0.0f));
+    cubeEntity.Transform.SetPosition(glm::vec3(3.0f, 0.0f, 0.0f));
 
     Camera camera;
     camera.Transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -167,18 +172,54 @@ void Window::MainLoop()
     Model backpack;
     ObjectLoader::LoadModel("models/backpack/backpack.obj", backpack);
 
-    Shader modelShader("shaders/model3d.vert", "shaders/model3d.frag");
-
     ModelEntity backpackEntity(backpack);
     backpackEntity.Transform.SetPosition(glm::vec3(0.0f));
 
+    
+    // light source
+    glm::vec3 ambient(0.2f);
+    glm::vec3 diffuse(1.0f);
+    glm::vec3 specular(1.0f);
 
+    float attConst = 1.0f;
+    float attLinear = 0.9f;
+    float attQuad = 0.032f;
+    
+    PointLight pointLight(
+	cubeEntity.Transform.GetPosition(),
+	ambient,
+	diffuse,
+	specular,
+	attConst,
+	attLinear,
+	attQuad
+    );
+    pointLight.UniformName = "u_pointLight";
+
+
+    SpotLight spotLight(
+	camera.Transform.GetPosition(),
+	camera.GetFrontVector(),
+	ambient,
+	diffuse,
+	specular,
+	12.5f,
+	17.5f,
+	attConst,
+	attLinear,
+	attQuad
+    );
+    spotLight.UniformName = "u_spotLight";
+
+
+    Shader lightingShader("shaders/entity_lighting.vert", "shaders/entity_lighting.frag");
 
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
 
-    auto updateAndDrawEntities = [&deltaTime, &projection, &camera](DrawableEntity& entity, const Shader& shader){
+
+    auto updateAndDrawEntity = [&deltaTime, &camera, &projection](DrawableEntity& entity, const Shader& shader) {
 	shader.Use();
 	shader.SetMat4("u_projection", projection);
 	shader.SetMat4("u_view", camera.GetLookAtMatrix());
@@ -186,6 +227,7 @@ void Window::MainLoop()
 	entity.Update(deltaTime);
 	entity.Draw(shader);
     };
+
 
     while (!glfwWindowShouldClose(m_glfwWindow))
     {
@@ -250,37 +292,53 @@ void Window::MainLoop()
             pFar
         );
 
-	/* glm::mat4 cubeTrans(1.0f); */
-	/* cubeTrans = glm::translate(cubeTrans, glm::vec3(0.0f, 3.0f, 0.0f)); */
-
-
-	/* cubeShader.Use(); */
-	/* cubeShader.SetMat4("model", cubeTrans); */
-	/* cubeShader.SetMat4("view", camera.GetLookAtMatrix()); */
-	/* cubeShader.SetMat4("projection", projection); */
-	/* cubeShader.SetVec3("customColor", glm::vec3(1.0f, 1.0f, 1.0f)); */
-
-	/* cubeMesh.Draw(); */
-
-	/* glm::mat4 backpackTrans(1.0f); */
-	/* backpackTrans = glm::translate(backpackTrans, glm::vec3(0.0f)); */
-	
-	/* modelShader.Use(); */
-	/* modelShader.SetMat4("u_model", backpackTrans); */
-	/* modelShader.SetMat4("u_view", camera.GetLookAtMatrix()); */
-	/* modelShader.SetMat4("u_projection", projection); */
-
-
-	/* backpack.Draw(modelShader); */
-
+	// light source cube
 	cubeShader.Use();
-	cubeShader.SetVec3("u_customColor", glm::vec3(1.0f));
+	cubeShader.SetVec3("u_customColor", glm::vec3(1.0f));	
+	updateAndDrawEntity(cubeEntity, cubeShader);
+
+
+	// backpack drawing with lighting
+	lightingShader.Use();
+	lightingShader.SetBool("u_usePointLight", true);
+	/* lightingShader.SetVec3("u_viewPos", camera.Transform.GetPosition()); */
+	/* lightingShader.SetVec3("u_pointLight.position", pointLight.Position); */
+	/* lightingShader.SetVec3("u_pointLight.ambient", pointLight.Ambient); */
+	/* lightingShader.SetVec3("u_pointLight.diffuse", pointLight.Diffuse); */
+	/* lightingShader.SetVec3("u_pointLight.specular", pointLight.Specular); */
+	/* lightingShader.SetFloat("u_pointLight.attConstant", pointLight.Attenuation.Constant); */
+	/* lightingShader.SetFloat("u_pointLight.attLinear", pointLight.Attenuation.Linear); */
+	/* lightingShader.SetFloat("u_pointLight.attQuadratic", pointLight.Attenuation.Quadratic); */
+	pointLight.Position = cubeEntity.Transform.GetPosition();
+	pointLight.SetLightUniforms(lightingShader);
+
+
+	lightingShader.SetBool("u_useSpotLight", true);
+	/* lightingShader.SetVec3("u_spotLight.position", spotLight.Position); */
+	/* lightingShader.SetVec3("u_spotLight.direction", spotLight.Direction); */
+	/* lightingShader.SetVec3("u_spotLight.ambient", spotLight.Ambient); */
+	/* lightingShader.SetVec3("u_spotLight.diffuse", spotLight.Diffuse); */
+	/* lightingShader.SetVec3("u_spotLight.specular", spotLight.Specular); */
+	/* lightingShader.SetFloat("u_spotLight.attConstant", spotLight.Attenuation.Constant); */
+	/* lightingShader.SetFloat("u_spotLight.attLinear", spotLight.Attenuation.Linear); */
+	/* lightingShader.SetFloat("u_spotLight.attQuadratic", spotLight.Attenuation.Quadratic); */
+	spotLight.Position = camera.Transform.GetPosition();
+	spotLight.Direction = camera.GetFrontVector();
+	spotLight.SetLightUniforms(lightingShader);
+
+	updateAndDrawEntity(backpackEntity, lightingShader);	
+    
+
+	// light source orbit
+	float radius = 3.0f;
+	float time = static_cast<float>(glfwGetTime());
+	float x = radius * std::sin(time);
+	float z = radius * std::cos(time);
+	float y = 0.0f;
+	cubeEntity.Transform.SetPosition(glm::vec3(x, y, z));
 	
-	updateAndDrawEntities(cubeEntity, cubeShader);
 
-	updateAndDrawEntities(backpackEntity, modelShader);
-
-        UIHelper::Render();
+	UIHelper::Render();
 
         glfwSwapBuffers(m_glfwWindow);
         glfwPollEvents();
@@ -301,9 +359,10 @@ void Window::updateWindowProperties()
 {
     // i can't update the members width and height of the window in the callback
     // so this is an ugly turnaround
-    int width = 0, height = 0;
-    glfwGetWindowSize(m_glfwWindow, &width, &height);
-    m_width = width, m_height = height;
+    // also, getting state variables is expensive, so we keep track of the new
+    // widht and height through a unnamed struct g_updatedProperties
+    m_width = g_updatedProperties.newWidth;
+    m_height = g_updatedProperties.newHeight;
 
     m_aspectRatio = (float)m_width / (float)m_height;
 
