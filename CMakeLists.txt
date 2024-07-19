@@ -30,6 +30,7 @@ set(SRC
     UIHelper.cpp
     ModelFactory.cpp
     StaticMesh.cpp
+    Entity.cpp
 )
 
 add_executable(prog

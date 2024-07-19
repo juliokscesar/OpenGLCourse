@@ -2,7 +2,7 @@
 
 in vec2 texCoord;
 
-uniform vec3 customColor;
+uniform vec3 u_customColor;
 
 uniform sampler2D texture0;
 uniform sampler2D texture1;
@@ -10,7 +10,7 @@ uniform float mixProportion;
 
 void main()
 {
-    gl_FragColor = vec4(customColor, 1.0);
+    gl_FragColor = vec4(u_customColor, 1.0);
 
     //vec4 tex0 = texture(texture0, texCoord);
     //vec4 tex1 = texture(texture1, texCoord);

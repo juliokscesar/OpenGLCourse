@@ -1,7 +1,6 @@
 #include "Window.hpp"
 
 #include <stdexcept>
-#include <iostream>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -18,6 +17,7 @@
 #include "UIHelper.hpp"
 #include "ModelFactory.hpp"
 #include "StaticMesh.hpp"
+#include "Entity.hpp"
 
 static bool g_bResized = false;
 void framebufferResizeCallback(GLFWwindow* window, int width, int height)
@@ -149,6 +149,9 @@ void Window::MainLoop()
     cubeShader.Use();
     cubeShader.SetVec3("customColor", glm::vec3(1.0f, 1.0f, 1.0f));
     
+    StaticMeshEntity cubeEntity(cubeMesh);
+    cubeEntity.Transform.SetPosition(glm::vec3(0.0f, 3.0f, 0.0f));
+
     Camera camera;
     camera.Transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
     
@@ -166,8 +169,24 @@ void Window::MainLoop()
 
     Shader modelShader("shaders/model3d.vert", "shaders/model3d.frag");
 
+    ModelEntity backpackEntity(backpack);
+    backpackEntity.Transform.SetPosition(glm::vec3(0.0f));
+
+
+
+
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
+
+    auto updateAndDrawEntities = [&deltaTime, &projection, &camera](DrawableEntity& entity, const Shader& shader){
+	shader.Use();
+	shader.SetMat4("u_projection", projection);
+	shader.SetMat4("u_view", camera.GetLookAtMatrix());
+
+	entity.Update(deltaTime);
+	entity.Draw(shader);
+    };
+
     while (!glfwWindowShouldClose(m_glfwWindow))
     {
         float currentFrame = (float)glfwGetTime();
@@ -231,29 +250,35 @@ void Window::MainLoop()
             pFar
         );
 
-	glm::mat4 cubeTrans(1.0f);
-	cubeTrans = glm::translate(cubeTrans, glm::vec3(0.0f, 3.0f, 0.0f));
+	/* glm::mat4 cubeTrans(1.0f); */
+	/* cubeTrans = glm::translate(cubeTrans, glm::vec3(0.0f, 3.0f, 0.0f)); */
 
+
+	/* cubeShader.Use(); */
+	/* cubeShader.SetMat4("model", cubeTrans); */
+	/* cubeShader.SetMat4("view", camera.GetLookAtMatrix()); */
+	/* cubeShader.SetMat4("projection", projection); */
+	/* cubeShader.SetVec3("customColor", glm::vec3(1.0f, 1.0f, 1.0f)); */
+
+	/* cubeMesh.Draw(); */
+
+	/* glm::mat4 backpackTrans(1.0f); */
+	/* backpackTrans = glm::translate(backpackTrans, glm::vec3(0.0f)); */
+	
+	/* modelShader.Use(); */
+	/* modelShader.SetMat4("u_model", backpackTrans); */
+	/* modelShader.SetMat4("u_view", camera.GetLookAtMatrix()); */
+	/* modelShader.SetMat4("u_projection", projection); */
+
+
+	/* backpack.Draw(modelShader); */
 
 	cubeShader.Use();
-	cubeShader.SetMat4("model", cubeTrans);
-	cubeShader.SetMat4("view", camera.GetLookAtMatrix());
-	cubeShader.SetMat4("projection", projection);
-	cubeShader.SetVec3("customColor", glm::vec3(1.0f, 1.0f, 1.0f));
-
-	cubeMesh.Draw();
-
-	glm::mat4 backpackTrans(1.0f);
-	backpackTrans = glm::translate(backpackTrans, glm::vec3(0.0f));
+	cubeShader.SetVec3("u_customColor", glm::vec3(1.0f));
 	
-	modelShader.Use();
-	modelShader.SetMat4("u_model", backpackTrans);
-	modelShader.SetMat4("u_view", camera.GetLookAtMatrix());
-	modelShader.SetMat4("u_projection", projection);
+	updateAndDrawEntities(cubeEntity, cubeShader);
 
-
-	backpack.Draw(modelShader);
-
+	updateAndDrawEntities(backpackEntity, modelShader);
 
         UIHelper::Render();
 
