@@ -1,5 +1,6 @@
 #include "Window.hpp"
 
+#include <GLFW/glfw3.h>
 #include <stdexcept>
 
 #include <glm/glm.hpp>
@@ -48,7 +49,14 @@ void updateAndDrawEntity(Entity& entity, const Shader& shader, float deltaTime, 
     for (auto& meshData : entity.GetMeshRef().GetSubMeshesRef())
     {
 	shader.SetBool("u_useMaterial", meshData.UseMaterial);
-	if (meshData.UseMaterial)
+
+	if (meshData.UseMaterial && meshData.Mat.DiffuseMaps.empty())
+	{
+	    shader.SetBool("u_useMaterial", false);
+	    meshData.UseMaterial = false;
+	}
+
+	else if (meshData.UseMaterial)
 	    shader.SetMaterial("u_material", meshData.Mat);
 
 	glBindVertexArray(meshData.VAO);
@@ -79,6 +87,9 @@ void Window::Init()
     
     // set to focus when window opens
     glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_TRUE);
+
+    // maximize window on create
+    glfwWindowHint(GLFW_MAXIMIZED, GL_TRUE);
 
     m_glfwWindow = glfwCreateWindow(m_width, m_height, m_title.c_str(), nullptr, nullptr);
     if (!m_glfwWindow)
@@ -123,12 +134,20 @@ void Window::Init()
 
 void Window::MainLoop()
 {
-    ObjectLoader::Model cubeModel = ObjectLoader::LoadModel("models/cubes/cube.obj");
-    Entity cubeEntity(cubeModel.Mesh);
-
     ObjectLoader::Model backpackModel = ObjectLoader::LoadModel("models/backpack/backpack.obj");
     Entity backpackEntity(backpackModel.Mesh);
     backpackEntity.Transform.Scale(0.2f);
+
+
+    stbi_set_flip_vertically_on_load(false);
+
+    Entity sponzaEntity(ObjectLoader::LoadModel("models/Sponza/sponza.obj").Mesh);
+    sponzaEntity.Transform.Scale(0.01f);
+
+    stbi_set_flip_vertically_on_load(true);
+
+
+
 
     Camera camera;
     camera.Transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -148,8 +167,8 @@ void Window::MainLoop()
 
     
     std::unordered_map<std::string, std::tuple<Entity&, const Shader&>> entitiesNamesMap = {
-	{"Cube", {cubeEntity, basicShader}},
-	{"Backpack", {backpackEntity, basicShader}}
+	{"Backpack", {backpackEntity, basicShader}},
+	{"Sponza", {sponzaEntity, basicShader}},
     };
 
 
