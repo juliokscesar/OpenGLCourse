@@ -156,6 +156,9 @@ vec3 CalculateSpotLight(SpotLight light, vec3 normal, vec3 diffMap, vec3 specMap
     return ((ambientLight + diffuseLight + specularLight) * attenuation);
 }
 
+
+uniform bool u_DEBUG_noRenderMaterial;
+
 void main()
 {
     // Test first with only one diffuse map and one specular map
@@ -174,6 +177,9 @@ void main()
     if (u_useSpotLight)
         resultColor += CalculateSpotLight(u_spotLight, FragNormal, texDiffuse, texSpecular);
 
+
+    if (u_DEBUG_noRenderMaterial)
+	resultColor = vec3(1.0);
     gl_FragColor = vec4(resultColor, 1.0);
 }
 

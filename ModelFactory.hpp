@@ -6,8 +6,6 @@
 
 #include <vector>
 
-#include "Shader.hpp"
-
 struct Vertex
 {
     glm::vec3 Position;
@@ -104,9 +102,7 @@ public:
 	return *this;
     }
 
-    void ActivateTexturesInShader(const Shader& shader);
-
-    void Draw(const Shader& shader);
+    void Draw() const noexcept;
 
 private:
     void setupRenderData();
@@ -137,7 +133,27 @@ public:
     Model(Model&& other)
 	: m_meshes(std::move(other.m_meshes)), m_path(std::move(other.m_path)) {}
 
-    void Draw(const Shader& shader);
+    Model& operator=(const Model& other)
+    {
+	if (this != &other)
+	{
+	    this->m_meshes = other.m_meshes;
+	    this->m_path   = other.m_path;
+	}
+
+	return *this;
+    }
+
+    Model& operator=(Model&& other)
+    {
+	if (this != &other)
+	{
+	    this->m_meshes = std::move(other.m_meshes);
+	    this->m_path   = std::move(other.m_path);
+	}
+
+	return *this;
+    }
 
     inline std::vector<Mesh>& GetMeshes() noexcept { return m_meshes; }
 
@@ -158,7 +174,7 @@ private:
 
 namespace ObjectLoader
 {
-    void LoadModel(const std::string& path, Model& outModel);
+    Model LoadModel(const std::string& path);
     
     void ProcessAssimpNode(aiNode* node, const aiScene* scene, std::vector<Mesh>& meshBuffer);
 

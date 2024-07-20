@@ -21,7 +21,11 @@ void ModelEntity::Draw(const Shader& shader)
 {
     DrawableEntity::Draw(shader);
 
-    m_model.Draw(shader);
+    for (const auto& mesh : m_model.GetMeshes())
+    {
+	shader.SetMaterial("u_material", mesh.Mat);
+	mesh.Draw();
+    }
 }
 
 void ModelEntity::Update(float deltaTime)

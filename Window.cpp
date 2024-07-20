@@ -169,13 +169,20 @@ void Window::MainLoop()
 	pFar
     );
 
-    Model backpack;
-    ObjectLoader::LoadModel("models/backpack/backpack.obj", backpack);
-
+    Model backpack = ObjectLoader::LoadModel("models/backpack/backpack.obj");
     ModelEntity backpackEntity(backpack);
     backpackEntity.Transform.SetPosition(glm::vec3(0.0f));
 
+    Model girl = ObjectLoader::LoadModel("models/girl_obj/girl OBJ.obj");
+    ModelEntity girlEntity(girl);
+    girlEntity.Transform.SetPosition(glm::vec3(4.0f, 0.0f, 0.0f));
     
+
+    Model girlFBX = ObjectLoader::LoadModel("models/girl_fbx/GIRL fbx.fbx");
+    ModelEntity gf_Entity(girlFBX);
+    gf_Entity.Transform.SetPosition(glm::vec3(2.0f, 0.0f, 0.0f));
+    gf_Entity.Transform.SetRotation(glm::vec3(90.0f, 0.0f, 0.0f));
+
     // light source
     glm::vec3 ambient(0.2f);
     glm::vec3 diffuse(1.0f);
@@ -301,33 +308,20 @@ void Window::MainLoop()
 	// backpack drawing with lighting
 	lightingShader.Use();
 	lightingShader.SetBool("u_usePointLight", true);
-	/* lightingShader.SetVec3("u_viewPos", camera.Transform.GetPosition()); */
-	/* lightingShader.SetVec3("u_pointLight.position", pointLight.Position); */
-	/* lightingShader.SetVec3("u_pointLight.ambient", pointLight.Ambient); */
-	/* lightingShader.SetVec3("u_pointLight.diffuse", pointLight.Diffuse); */
-	/* lightingShader.SetVec3("u_pointLight.specular", pointLight.Specular); */
-	/* lightingShader.SetFloat("u_pointLight.attConstant", pointLight.Attenuation.Constant); */
-	/* lightingShader.SetFloat("u_pointLight.attLinear", pointLight.Attenuation.Linear); */
-	/* lightingShader.SetFloat("u_pointLight.attQuadratic", pointLight.Attenuation.Quadratic); */
 	pointLight.Position = cubeEntity.Transform.GetPosition();
 	pointLight.SetLightUniforms(lightingShader);
 
 
 	lightingShader.SetBool("u_useSpotLight", true);
-	/* lightingShader.SetVec3("u_spotLight.position", spotLight.Position); */
-	/* lightingShader.SetVec3("u_spotLight.direction", spotLight.Direction); */
-	/* lightingShader.SetVec3("u_spotLight.ambient", spotLight.Ambient); */
-	/* lightingShader.SetVec3("u_spotLight.diffuse", spotLight.Diffuse); */
-	/* lightingShader.SetVec3("u_spotLight.specular", spotLight.Specular); */
-	/* lightingShader.SetFloat("u_spotLight.attConstant", spotLight.Attenuation.Constant); */
-	/* lightingShader.SetFloat("u_spotLight.attLinear", spotLight.Attenuation.Linear); */
-	/* lightingShader.SetFloat("u_spotLight.attQuadratic", spotLight.Attenuation.Quadratic); */
 	spotLight.Position = camera.Transform.GetPosition();
 	spotLight.Direction = camera.GetFrontVector();
 	spotLight.SetLightUniforms(lightingShader);
 
 	updateAndDrawEntity(backpackEntity, lightingShader);	
     
+	//lightingShader.SetBool("u_DEBUG_noRenderMaterial", true);
+	updateAndDrawEntity(girlEntity, lightingShader);
+	updateAndDrawEntity(gf_Entity, lightingShader);
 
 	// light source orbit
 	float radius = 3.0f;

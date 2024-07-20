@@ -133,11 +133,56 @@ void Shader::SetFloat(const std::string &name, float val) const noexcept
 void Shader::SetMat4(const std::string &name, const glm::mat4 &m) const noexcept
 {
     GLint loc = glGetUniformLocation(ID, name.c_str());
-    glUniformMatrix4fv(loc, 1, GL_FALSE, &m[0][0]); 
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m)); 
 }
 
 void Shader::SetVec3(const std::string &name, const glm::vec3 &v) const noexcept
 {
     GLint loc = glGetUniformLocation(ID, name.c_str());
-    glUniform3fv(loc, 1, &v[0]);
+    glUniform3fv(loc, 1, glm::value_ptr(v));
 }
+
+
+void Shader::SetMaterial(const std::string& name, const Material& mat) const noexcept
+{
+    constexpr size_t MAX_NUMBER_SAMPLER2D = 15;
+
+    const size_t diffuseSize = mat.DiffuseMaps.size();
+    const size_t specularSize = mat.SpecularMaps.size();
+    if (diffuseSize + specularSize > MAX_NUMBER_SAMPLER2D)
+    {
+	std::cout << "diffuseSize of " << diffuseSize << " and specularSize of" << specularSize << " exceeds MAX_NUMBER_SAMPLER2D of " << MAX_NUMBER_SAMPLER2D << '\n';
+	return;
+    }
+
+    // set diffuse textures in EVEN-numbered texture units
+    for (int unit = 0, count = 0; count < diffuseSize; count++)
+    {
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(GL_TEXTURE_2D, mat.DiffuseMaps[count].glID);
+
+	char texIndex = count + '0';
+	const std::string uniformTex(name + ".texture_diffuse[" + texIndex + ']');
+	SetInt(uniformTex, unit);
+	unit += 2;
+    }
+
+    // set specular textures in ODD-numbered texture units
+    for (int unit = 1, count = 0; count < specularSize; count++)
+    {
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(GL_TEXTURE_2D, mat.SpecularMaps[count].glID);
+
+	char texIndex = count + '0';
+	const std::string uniformTex(name + ".texture_specular[" + texIndex + ']');
+	SetInt(uniformTex, unit);
+
+	unit += 2;
+    }
+
+    SetFloat(name + ".shininess", mat.Shininess);
+
+    glActiveTexture(GL_TEXTURE0);
+}
+
+

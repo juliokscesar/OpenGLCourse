@@ -1,5 +1,4 @@
 #include "ModelFactory.hpp"
-#include "assimp/types.h"
 
 #include <glad/glad.h>
 
@@ -15,15 +14,30 @@
 #include <assimp/postprocess.h>
 #include <assimp/material.h>
 
+static std::string formatPath(const std::string& p)
+{
+    std::string out = p;
+    auto pos = out.find("\\");
+    while (pos != std::string::npos)
+    {
+	out.replace(pos, 1, "/");
+	pos = out.find("\\", pos);
+    }
+    return out;
+}
+
 static std::string recursiveSearchFullPath(const std::filesystem::path& path, const std::string& desiredFileName)
 {
+    std::string formatted = formatPath(desiredFileName);
+    auto desiredFile = std::filesystem::path(formatted).filename();
+
     for (const auto& p : std::filesystem::recursive_directory_iterator(path))
     {
 	if (std::filesystem::is_directory(p))
 	    continue;
 
 	const std::string foundFile = p.path().filename();
-	if (foundFile.compare(desiredFileName) == 0)
+	if (foundFile.compare(desiredFile.string()) == 0)
 	    return std::string(p.path());
     }
 
@@ -39,7 +53,7 @@ unsigned int LoadTextureFromFile(const std::string &path)
 
     if (!data)
     {
-	std::cerr << "Texture to failed to load from path " << fullPath << '\n';
+	std::cerr << "Texture to failed to load from path given " << path << " using fullPath found " << fullPath << '\n';
 	stbi_image_free(data);
 	return 0;
     }
@@ -150,65 +164,8 @@ void Mesh::setupRenderData()
     glEnableVertexAttribArray(2);
 }
 
-void Mesh::ActivateTexturesInShader(const Shader& shader)
+void Mesh::Draw() const noexcept
 {
-    // Draw assuming we're using a sampler2D array in our shader
-    // so we loop over every texture of our mesh (up to a max nr)
-    // and set the sampler2D based on our index
-
-    constexpr unsigned int MAX_NUMBER_SAMPLER2D = 15;
-
-    const size_t diffuseSize = Mat.DiffuseMaps.size();
-    const size_t specularSize = Mat.SpecularMaps.size();
-
-    if (diffuseSize > MAX_NUMBER_SAMPLER2D)
-    {
-	std::cout << "Diffuse textures of size " << diffuseSize << "exceeds MAX_NUMBER_SAMPLER2D of " << MAX_NUMBER_SAMPLER2D << '\n';
-	return;
-    }
-
-    if (specularSize > MAX_NUMBER_SAMPLER2D)
-    {
-	std::cout << "Specular textures of size " << specularSize << "exceeds MAX_NUMBER_SAMPLER2D of " << MAX_NUMBER_SAMPLER2D << '\n';
-	return;
-    }
-
-    // set diffuse textures in EVEN-numbered texture units
-    for (int unit = 0, count = 0; count < diffuseSize; count++)
-    {
-	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(GL_TEXTURE_2D, Mat.DiffuseMaps[count].glID);
-
-	char texIndex = count + '0';
-	const std::string uniformTex(std::string("u_material.texture_diffuse[") + texIndex + ']');
-	shader.SetInt(uniformTex, unit);
-
-	unit += 2;
-    }
-
-    // set specular textures in ODD-numbered texture units
-    for (int unit = 1, count = 0; count < specularSize; count++)
-    {
-	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(GL_TEXTURE_2D, Mat.SpecularMaps[count].glID);
-
-	char texIndex = count + '0';
-	const std::string uniformTex(std::string("u_material.texture_specular[") + texIndex + ']');
-	shader.SetInt(uniformTex, unit);
-
-	unit += 2;
-    }
-
-    shader.SetFloat("u_material.shininess", Mat.Shininess);
-
-    glActiveTexture(GL_TEXTURE0);
-}
-
-// TODO: take shader out of this function 
-void Mesh::Draw(const Shader& shader)
-{
-    ActivateTexturesInShader(shader);
-
     glBindVertexArray(m_VAO);
     
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, 0);
@@ -221,16 +178,12 @@ Model::Model(const std::vector<Mesh>& meshes, const std::string& path)
 {
 }
 
-void Model::Draw(const Shader& shader)
+
+
+Model ObjectLoader::LoadModel(const std::string &path)
 {
-    for (size_t i = 0; i < m_meshes.size(); i++)
-	m_meshes[i].Draw(shader);
-}
+    Model out{};
 
-
-
-void ObjectLoader::LoadModel(const std::string &path, Model& outModel)
-{
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, 
 	aiProcess_Triangulate |
@@ -244,10 +197,12 @@ void ObjectLoader::LoadModel(const std::string &path, Model& outModel)
 	std::cerr <<"LoadModel assimp error when loading " << path << ": " << importer.GetErrorString() << '\n';
     }
     
-    outModel.GetMeshes().reserve(scene->mNumMeshes);
-    outModel.SetPath(path);
+    out.GetMeshes().reserve(scene->mNumMeshes);
+    out.SetPath(path);
 
-    ProcessAssimpNode(scene->mRootNode, scene, outModel.GetMeshes());
+    ProcessAssimpNode(scene->mRootNode, scene, out.GetMeshes());
+
+    return out;
 }
 
 void ObjectLoader::ProcessAssimpNode(aiNode *node, const aiScene *scene, std::vector<Mesh> &meshBuffer)
