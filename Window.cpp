@@ -19,6 +19,7 @@
 #include "Entity.hpp"
 #include "ModelFactory.hpp"
 #include "UIHelper.hpp"
+#include "Light.hpp"
 
 static bool g_bResized = false;
 static struct {int newWidth; int newHeight; } g_updatedProperties;
@@ -35,6 +36,8 @@ void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 void updateAndDrawEntity(Entity& entity, const Shader& shader, float deltaTime, const Camera& camera, const glm::mat4& projection)
 {
     entity.Update(deltaTime);
+    if (!entity.IsVisible())
+	return;
 
     shader.Use();
 
@@ -50,6 +53,17 @@ void updateAndDrawEntity(Entity& entity, const Shader& shader, float deltaTime, 
 
 	glBindVertexArray(meshData.VAO);
 	glDrawElements(GL_TRIANGLES, meshData.NumIndices, GL_UNSIGNED_INT, 0);
+    }
+}
+
+void updateAndDrawEntities(const std::unordered_map<std::string, std::tuple<Entity&, const Shader&>>& entities, float deltaTime, const Camera& camera, const glm::mat4& projection)
+{
+    for (auto& [name, tupleEntityShader] : entities)
+    {
+	Entity& entity = std::get<0>(tupleEntityShader);
+	const Shader& shader = std::get<1>(tupleEntityShader);
+
+	updateAndDrawEntity(entity, shader, deltaTime, camera, projection);
     }
 }
 
@@ -99,6 +113,7 @@ void Window::Init()
 
     // enable depth testing
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS); // already set by default
 
     // Initiate ImGui
     UIHelper::Init(m_glfwWindow);
@@ -108,86 +123,12 @@ void Window::Init()
 
 void Window::MainLoop()
 {
-    std::vector<float> cubeVertices={
-        // positions        // texcoords (2D TEXTURE)
-        // BACK
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // A 0 
-         0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // B 1 
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // C 2 
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // D 3 
-
-        // RIGHT
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // B 4 
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // C 5 
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // F 6 
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // G 7 
-
-        // FRONT
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // E 8 
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // F 9 
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // G 10 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // H 11 
-
-        // TOP
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // C 12 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // D 13 
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // E 14 
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // F 15 
-
-        // LEFT
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // A 16
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // D 17
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // E 18
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // H 19
-
-        // BOTTOM
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // A 20 
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // B 21 
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // G 22 
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f  // H 23
-    };
-
-    std::vector<unsigned int> cubeIndices = {
-        0, 1, 3,
-        3, 1, 2,
-        5, 4, 7,
-        7, 5, 6,
-        9, 10, 11,
-        11, 9, 8,
-        14, 15, 12,
-        12, 14, 13,
-        17, 18, 16,
-        16, 18, 19,
-        23, 20, 21,
-        21, 23, 22
-    };
-
-    std::vector<VertexAttribProperties> cubeVertexAttributes = {
-	{ 0, 3, 5*sizeof(float), 0  },
-	{ 2, 2, 5*sizeof(float), 3*sizeof(float) }
-    };
-
-    Texture2D cubeTexture = ObjectLoader::LoadTextureFromFile("textures/container.jpg");
-
-    Material cubeMaterial;
-    cubeMaterial.DiffuseMaps.push_back(cubeTexture);
-
-    StaticMesh cubeMesh(
-	cubeVertices,
-	cubeIndices,
-	cubeVertexAttributes,
-	cubeMaterial
-    );
-
-    Entity cubeEntity(cubeMesh);
-
-    StaticMesh noMatCubeMesh(cubeVertices, cubeIndices, cubeVertexAttributes);
-    Entity noMatCubeEntity(noMatCubeMesh);
+    ObjectLoader::Model cubeModel = ObjectLoader::LoadModel("models/cubes/cube.obj");
+    Entity cubeEntity(cubeModel.Mesh);
 
     ObjectLoader::Model backpackModel = ObjectLoader::LoadModel("models/backpack/backpack.obj");
-    StaticMesh backpackMesh(backpackModel.Mesh);
-    Entity backpackEntity(backpackMesh);
-
+    Entity backpackEntity(backpackModel.Mesh);
+    backpackEntity.Transform.Scale(0.2f);
 
     Camera camera;
     camera.Transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -203,14 +144,32 @@ void Window::MainLoop()
 
     
     Shader basicShader("shaders/basic_shader.vert", "shaders/basic_shader.frag");
-    
+    Shader lightingShader("shaders/objfile_shaders/entity_lighting.vert", "shaders/objfile_shaders/entity_lighting.frag");
 
     
-    std::unordered_map<std::string, Entity&> entitiesNamesMap = {
-	{"Cube", cubeEntity},
-	{"NoMatCube", noMatCubeEntity},
-	{"Backpack", backpackEntity}
+    std::unordered_map<std::string, std::tuple<Entity&, const Shader&>> entitiesNamesMap = {
+	{"Cube", {cubeEntity, basicShader}},
+	{"Backpack", {backpackEntity, basicShader}}
     };
+
+
+    DirectionalLight dirLight;
+    dirLight.UniformName = "u_dirLight";
+    dirLight.Direction = glm::vec3(-0.2f, -1.0f, 0.0f);
+    dirLight.Ambient = glm::vec3(0.05f);
+    dirLight.Diffuse = glm::vec3(0.4f);
+    dirLight.Specular = glm::vec3(0.5f);
+
+    SpotLight spotLight;
+    spotLight.UniformName = "u_spotLight";
+    spotLight.Position = camera.Transform.GetPosition();
+    spotLight.Direction = camera.GetFrontVector();
+    spotLight.Ambient = glm::vec3(0.0f);
+    spotLight.Diffuse = glm::vec3(0.4f);
+    spotLight.Specular = glm::vec3(0.4f);
+    spotLight.Attenuation = { 1.0f, 0.09f, 0.032f };
+    spotLight.InnerCutoff = 12.5f;
+    spotLight.OuterCutoff = 17.5f;
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
@@ -229,6 +188,8 @@ void Window::MainLoop()
         UIHelper::FrameStatsWindow(deltaTime);
 	
 	UIHelper::EntityPropertiesManager(entitiesNamesMap);
+
+	UIHelper::DirectionalLightPropertiesManager(dirLight);
 
         if (g_bResized)
             this->updateWindowProperties();
@@ -279,10 +240,17 @@ void Window::MainLoop()
             pFar
         );
 
-		
-	updateAndDrawEntity(cubeEntity, basicShader, deltaTime, camera, projection);
-	updateAndDrawEntity(noMatCubeEntity, basicShader, deltaTime, camera, projection);
-	updateAndDrawEntity(backpackEntity, basicShader, deltaTime, camera, projection);
+	spotLight.Position = camera.Transform.GetPosition();
+	spotLight.Direction = camera.GetFrontVector();
+	
+	lightingShader.SetVec3("u_viewPos", camera.Transform.GetPosition());
+
+	lightingShader.SetBool("u_useDirectionalLight", true);
+	dirLight.SetLightUniforms(lightingShader);
+
+
+	updateAndDrawEntities(entitiesNamesMap, deltaTime, camera, projection);
+
 
 	UIHelper::Render();
 

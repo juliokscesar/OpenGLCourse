@@ -5,7 +5,11 @@
 void TransformComponent::SetPosition(const glm::vec3 &pos)
 {
     m_position = pos;
-    updateTransformMatrix();
+}
+
+void TransformComponent::SetPosition(float x, float y, float z)
+{
+    m_position = glm::vec3(x, y, z);
 }
 
 void TransformComponent::Translate(const glm::vec3 &pos)
@@ -16,7 +20,11 @@ void TransformComponent::Translate(const glm::vec3 &pos)
 void TransformComponent::SetRotation(const glm::vec3 &rot)
 {
     m_rotation = rot;
-    updateTransformMatrix();
+}
+
+void TransformComponent::SetRotation(float x, float y, float z)
+{
+    m_rotation = glm::vec3(x, y, z);
 }
 
 void TransformComponent::Rotate(float deg, const glm::vec3& axis)
@@ -33,13 +41,16 @@ void TransformComponent::Rotate(float deg, const glm::vec3& axis)
 void TransformComponent::SetScale(const glm::vec3 &scale)
 {
     m_scale = scale;
-    updateTransformMatrix();
+}
+
+void TransformComponent::SetScale(float x, float y, float z)
+{
+    m_scale = glm::vec3(x, y, z);
 }
 
 void TransformComponent::Scale(float factor)
 {
     m_scale = glm::vec3(factor);
-    updateTransformMatrix();
 }
 
 void TransformComponent::Update()

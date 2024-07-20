@@ -13,6 +13,7 @@ struct Material
     float shininess;
 };
 uniform Material u_material;
+uniform bool u_useMaterial;
 
 uniform vec3 u_viewPos;
 
@@ -163,6 +164,9 @@ void main()
 {
     vec3 resultColor = vec3(0.0);
 
+    if (texture(u_material.texture_diffuse[0], TexCoords).a < 0.5)
+	discard;
+
     // Test first with only one diffuse map and one specular map
     vec3 texDiffuse = vec3(texture(u_material.texture_diffuse[0], TexCoords));
 
@@ -181,6 +185,7 @@ void main()
 
     if (u_DEBUG_noRenderMaterial)
 	resultColor = vec3(1.0);
+
     gl_FragColor = vec4(resultColor, 1.0);
 }
 

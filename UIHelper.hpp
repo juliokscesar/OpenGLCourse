@@ -8,8 +8,10 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 
 #include <unordered_map>
+#include <tuple>
 
 #include "Entity.hpp"
+#include "Light.hpp"
 
 namespace UIHelper
 {
@@ -20,5 +22,7 @@ namespace UIHelper
 
     void FrameStatsWindow(float deltaTime);
 
-    void EntityPropertiesManager(const std::unordered_map<std::string, Entity&>& entities);
+    void EntityPropertiesManager(const std::unordered_map<std::string, std::tuple<Entity&, const Shader&>>& entities);
+
+    void DirectionalLightPropertiesManager(DirectionalLight& dirLight);
 }

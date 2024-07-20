@@ -3,5 +3,6 @@
 build/
 *compile_commands*
 .cache/
+models/*
 
 imgui.ini

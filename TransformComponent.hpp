@@ -34,14 +34,17 @@ public:
     inline glm::mat4 GetTransformMatrix() const noexcept { return m_transMatrix; }
 
     void SetPosition(const glm::vec3& pos);
+    void SetPosition(float x, float y, float z);
     void Translate(const glm::vec3& pos);
     inline glm::vec3& GetPositionRef() noexcept { return m_position; }
 
     void SetRotation(const glm::vec3& rot);
+    void SetRotation(float x, float y, float z);
     void Rotate(float deg, const glm::vec3& axis);
     inline glm::vec3& GetRotationRef() noexcept { return m_rotation; }
 
     void SetScale(const glm::vec3& scale);
+    void SetScale(float x, float y, float z);
     void Scale(float factor);
     inline glm::vec3& GetScaleRef() noexcept { return m_scale; }
 

@@ -19,6 +19,7 @@ struct AttenuationProperties
     float Quadratic;
 };
 
+
 struct Light
 {
     Light()

@@ -15,10 +15,14 @@ in vec2 TexCoords;
 
 void main()
 {
-    vec4 resultColor = vec4(1.0f);
+    vec4 resultColor = vec4(1.0);
     
     if (u_useMaterial)
+    {
         resultColor = texture(u_material.texture_diffuse[0], TexCoords);
+	if (resultColor.a < 0.5)
+	    discard;
+    }
 
     gl_FragColor = resultColor;
 }
