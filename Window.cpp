@@ -10,6 +10,7 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 
 #include <stb/stb_image.h>
+#include <unordered_map>
 #include <utility>
 
 #include "Shader.hpp"
@@ -237,6 +238,13 @@ void Window::MainLoop()
 	entity.Draw(shader);
     };
 
+    
+    std::unordered_map<std::string, DrawableEntity&> entitiesMap = {
+	{"Backpack", backpackEntity},
+	{"GirlOBJ", girlEntity},
+	{"GirlFBX", gf_Entity}
+    };
+
 
     while (!glfwWindowShouldClose(m_glfwWindow))
     {
@@ -251,6 +259,8 @@ void Window::MainLoop()
         UIHelper::NewFrame();
 
         UIHelper::FrameStatsWindow(deltaTime);
+	
+	UIHelper::EntityPropertiesManager(entitiesMap);
 
         if (g_bResized)
             this->updateWindowProperties();
