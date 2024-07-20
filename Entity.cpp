@@ -1,62 +1,12 @@
 #include "Entity.hpp"
-#include "StaticMesh.hpp"
 
-void DrawableEntity::Draw(const Shader& shader)
+Entity::Entity(const StaticMesh& mesh)
+    : m_mesh(mesh)
 {
-    shader.SetMat4("u_model", Transform.GetTransformMatrix());
 }
 
-void DrawableEntity::Update(float deltaTime)
+void Entity::Update(float deltaTime)
 {
     Transform.Update();
-}
-
-
-ModelEntity::ModelEntity(const Model& model)
-    : m_model(model)
-{
-}
-
-ModelEntity::ModelEntity(Model&& model)
-    : m_model(model)
-{
-}
-
-void ModelEntity::Draw(const Shader& shader)
-{
-    DrawableEntity::Draw(shader);
-
-    for (const auto& mesh : m_model.GetMeshes())
-    {
-	shader.SetMaterial("u_material", mesh.Mat);
-	mesh.Draw();
-    }
-}
-
-void ModelEntity::Update(float deltaTime)
-{
-    DrawableEntity::Update(deltaTime);
-}
-
-
-StaticMeshEntity::StaticMeshEntity(const StaticMesh& staticMesh)
-    : m_sMesh(staticMesh)
-{
-}
-
-StaticMeshEntity::StaticMeshEntity(StaticMesh&& staticMesh)
-    : m_sMesh(staticMesh)
-{
-}
-
-void StaticMeshEntity::Draw(const Shader& shader)
-{
-    DrawableEntity::Draw(shader);
-    m_sMesh.Draw();
-}
-
-void StaticMeshEntity::Update(float deltaTime)
-{
-    DrawableEntity::Update(deltaTime);
 }
 

@@ -20,5 +20,5 @@ namespace UIHelper
 
     void FrameStatsWindow(float deltaTime);
 
-    void EntityPropertiesManager(const std::unordered_map<std::string, DrawableEntity&>& entities);
+    void EntityPropertiesManager(const std::unordered_map<std::string, Entity&>& entities);
 }

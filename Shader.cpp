@@ -149,7 +149,7 @@ void Shader::SetVec3(const std::string &name, const glm::vec3 &v) const noexcept
 }
 
 
-void Shader::SetMaterial(const std::string& name, const Material& mat) const noexcept
+void Shader::SetMaterial(const std::string& name, Material& mat) const noexcept
 {
     constexpr size_t MAX_NUMBER_SAMPLER2D = 15;
 
@@ -164,8 +164,9 @@ void Shader::SetMaterial(const std::string& name, const Material& mat) const noe
     // set diffuse textures in EVEN-numbered texture units
     for (int unit = 0, count = 0; count < diffuseSize; count++)
     {
-	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(GL_TEXTURE_2D, mat.DiffuseMaps[count].glID);
+	Texture2D& diffuseTex = mat.DiffuseMaps[count];
+	diffuseTex.SetUnit(unit);
+	diffuseTex.Bind();
 
 	char texIndex = count + '0';
 	const std::string uniformTex(name + ".texture_diffuse[" + texIndex + ']');
@@ -176,8 +177,10 @@ void Shader::SetMaterial(const std::string& name, const Material& mat) const noe
     // set specular textures in ODD-numbered texture units
     for (int unit = 1, count = 0; count < specularSize; count++)
     {
-	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(GL_TEXTURE_2D, mat.SpecularMaps[count].glID);
+	Texture2D& specularTex = mat.SpecularMaps[count];
+	specularTex.SetUnit(unit);
+	specularTex.Bind();
+
 
 	char texIndex = count + '0';
 	const std::string uniformTex(name + ".texture_specular[" + texIndex + ']');

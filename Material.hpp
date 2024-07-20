@@ -1,18 +1,13 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include <vector>
 
-struct SimpleMaterial
+#include "Texture2D.hpp"
+
+struct Material
 {
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-    float shininess;
+    std::vector<Texture2D> DiffuseMaps;
+    std::vector<Texture2D> SpecularMaps;
+    float Shininess = 10.0f;
 };
 
-struct MaterialMap
-{
-    int diffuseMapTex;
-    int specularMapTex;
-    float shininess;
-};

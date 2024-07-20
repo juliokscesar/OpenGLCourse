@@ -35,6 +35,7 @@ set(SRC
     TransformComponent.cpp
     Camera.cpp
     UIHelper.cpp
+    Texture2D.cpp
     ModelFactory.cpp
     StaticMesh.cpp
     Entity.cpp

@@ -1,91 +1,180 @@
 #include "StaticMesh.hpp"
+#include <cstddef>
 
-StaticMesh::StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices)
+
+MeshData::MeshData(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs)
 {
-    m_useIndexedDrawing = false;
-    m_vertices = numVertices;
+    UseMaterial = false;
 
-    glGenVertexArrays(1, &m_VAO);
-    glBindVertexArray(m_VAO);
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
-    glGenBuffers(1, &m_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+    glBindVertexArray(VAO);
 
-    glBufferData(GL_ARRAY_BUFFER, verticesSize, verticesData, GL_STATIC_DRAW);
+    /// VBO SETUP
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    const size_t vboSize = vertexPositions.size() * sizeof(float);
+    glBufferData(GL_ARRAY_BUFFER, vboSize, vertexPositions.data(), GL_STATIC_DRAW);
+
+    /// EBO SETUP
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+    NumIndices = indices.size();
+    const size_t eboSize = indices.size() * sizeof(unsigned int);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboSize, indices.data(), GL_STATIC_DRAW);
+
+    /// Vertex Attributes
+    for (const auto& attrib : vertexAttribs)
+    {
+	glVertexAttribPointer(
+	    attrib.Location,
+	    attrib.NumValues,
+	    GL_FLOAT,
+	    GL_FALSE,
+	    attrib.Stride,
+	    (void*)(attrib.Offset)
+	);
+	glEnableVertexAttribArray(attrib.Location);
+    }
 }
 
-StaticMesh::StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices, GLuint indices[], GLsizeiptr indSize)
+MeshData::MeshData(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs, const Material& mat)
 {
-    m_useIndexedDrawing = true;
-    m_vertices = numVertices;
+    Mat = mat;
 
-    glGenVertexArrays(1, &m_VAO);
-    glBindVertexArray(m_VAO);
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
-    glGenBuffers(1, &m_VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+    glBindVertexArray(VAO);
 
-    glBufferData(GL_ARRAY_BUFFER, verticesSize, verticesData, GL_STATIC_DRAW);
+    /// VBO SETUP
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    glGenBuffers(1, &m_EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indSize, indices, GL_STATIC_DRAW);
+    const size_t vboSize = vertexPositions.size() * sizeof(float);
+    glBufferData(GL_ARRAY_BUFFER, vboSize, vertexPositions.data(), GL_STATIC_DRAW);
 
-    glBindVertexArray(0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    /// EBO SETUP
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
+    NumIndices = indices.size();
+    const size_t eboSize = indices.size() * sizeof(unsigned int);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboSize, indices.data(), GL_STATIC_DRAW);
 
+    /// Vertex Attributes
+    for (const auto& attrib : vertexAttribs)
+    {
+	glVertexAttribPointer(
+	    attrib.Location,
+	    attrib.NumValues,
+	    GL_FLOAT,
+	    GL_FALSE,
+	    attrib.Stride,
+	    (void*)(attrib.Offset)
+	);
+	glEnableVertexAttribArray(attrib.Location);
+    }
 }
 
-StaticMesh::StaticMesh(const StaticMesh &other)
+MeshData::MeshData(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const Material& material)
+    : Mat(material)
 {
-    this->m_VAO = other.m_VAO;
-    this->m_VBO = other.m_VBO;
-    this->m_EBO = other.m_EBO;
-    this->m_vertices = other.m_vertices;
-    this->m_useIndexedDrawing = other.m_useIndexedDrawing;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO);
+
+    /// VBO SETUP
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    const size_t vboSize = vertices.size() * sizeof(Vertex);
+    glBufferData(GL_ARRAY_BUFFER, vboSize, vertices.data(), GL_STATIC_DRAW);
+
+    /// EBO SETUP
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+    NumIndices = indices.size();
+    const size_t eboSize = indices.size() * sizeof(unsigned int);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboSize, indices.data(), GL_STATIC_DRAW);
+
+    /// Vertex Attributes SETUP
+    constexpr size_t ATT_STRIDE = sizeof(Vertex);
+
+    // position vertex attribute
+    glVertexAttribPointer(
+	0,
+	3,
+	GL_FLOAT,
+	GL_FALSE,
+	ATT_STRIDE,
+	(void*)0
+    );
+    glEnableVertexAttribArray(0);
+
+    // normal vertex attribute
+    glVertexAttribPointer(
+	1,
+	3,
+	GL_FLOAT,
+	GL_FALSE,
+	ATT_STRIDE,
+	(void*)offsetof(Vertex, Normal)
+    );
+    glEnableVertexAttribArray(1);
+
+    // tex coords vertex attribute
+    glVertexAttribPointer(
+	2,
+	2,
+	GL_FLOAT,
+	GL_FALSE,
+	ATT_STRIDE,
+	(void*)offsetof(Vertex, TexCoords)
+    );
+    glEnableVertexAttribArray(2);
+}
+
+
+StaticMesh::StaticMesh(const std::vector<MeshData>& subMeshes)
+    : m_meshData(subMeshes)
+{
+}
+
+
+StaticMesh::StaticMesh(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs)
+{
+    MeshData mesh(vertexPositions, indices, vertexAttribs);
+    m_meshData.push_back(mesh);
+}
+
+StaticMesh::StaticMesh(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs, const Material& mat)
+{
+    MeshData mesh(vertexPositions, indices, vertexAttribs, mat);
+    m_meshData.push_back(mesh);
+}
+
+StaticMesh::StaticMesh(const StaticMesh& other)
+    : m_meshData(other.m_meshData)
+{
 }
 
 StaticMesh::StaticMesh(StaticMesh&& other)
+    : m_meshData(std::move(other.m_meshData))
 {
-    *this = std::move(other);
-}
-
-void StaticMesh::SetVertexAttribute(GLuint loc, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *offsetSize) const noexcept
-{
-    glBindVertexArray(m_VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-
-    if (m_useIndexedDrawing)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-
-    glVertexAttribPointer(loc, size, type, normalized, stride, offsetSize);
-    glEnableVertexAttribArray(loc);
-}
-
-void StaticMesh::SetEnabledVertexAttribute(GLuint loc, bool enable) const noexcept
-{
-    if (enable)
-        glEnableVertexAttribArray(loc);
-    else
-        glDisableVertexAttribArray(loc);
 }
 
 void StaticMesh::Draw() const noexcept
 {
-    glBindVertexArray(m_VAO);
-
-    if (m_useIndexedDrawing)
+    for (const auto& mesh : m_meshData)
     {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-        glDrawElements(GL_TRIANGLES, m_vertices, GL_UNSIGNED_INT, 0);
-    }
-    else
-    {
-        glDrawArrays(GL_TRIANGLES, 0, m_vertices);
+	glBindVertexArray(mesh.VAO);
+	
+	glDrawElements(GL_TRIANGLES, mesh.NumIndices, GL_UNSIGNED_INT, 0);
     }
 }
+
+
+

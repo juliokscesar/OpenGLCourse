@@ -3,7 +3,7 @@
 #include <string>
 #include <glm/glm.hpp>
 
-#include "ModelFactory.hpp"
+#include "Material.hpp"
 
 class Shader
 {
@@ -27,7 +27,7 @@ public:
     void SetMat4(const std::string& name, const glm::mat4& m) const noexcept;
     void SetVec3(const std::string& name, const glm::vec3& v) const noexcept;
 
-    void SetMaterial(const std::string& name, const Material& mat) const noexcept;
+    void SetMaterial(const std::string& name, Material& mat) const noexcept;
 
 private:
     unsigned int m_vertexID, m_fragID;

@@ -11,14 +11,16 @@
 
 #include <stb/stb_image.h>
 #include <unordered_map>
+#include <utility>
 
 #include "Shader.hpp"
 #include "Input.hpp"
 #include "Camera.hpp"
+#include "UIHelper.hpp"
+#include "ModelFactory.hpp"
 #include "StaticMesh.hpp"
 #include "Entity.hpp"
-#include "ModelFactory.hpp"
-#include "UIHelper.hpp"
+#include "Light.hpp"
 
 static bool g_bResized = false;
 static struct {int newWidth; int newHeight; } g_updatedProperties;
@@ -29,28 +31,6 @@ void framebufferResizeCallback(GLFWwindow* window, int width, int height)
     
     g_updatedProperties.newWidth = width;
     g_updatedProperties.newHeight = height;
-}
-
-
-void updateAndDrawEntity(Entity& entity, const Shader& shader, float deltaTime, const Camera& camera, const glm::mat4& projection)
-{
-    entity.Update(deltaTime);
-
-    shader.Use();
-
-    shader.SetMat4("u_model", entity.Transform.GetTransformMatrix());
-    shader.SetMat4("u_view", camera.GetLookAtMatrix());
-    shader.SetMat4("u_projection", projection);
-
-    for (auto& meshData : entity.GetMeshRef().GetSubMeshesRef())
-    {
-	shader.SetBool("u_useMaterial", meshData.UseMaterial);
-	if (meshData.UseMaterial)
-	    shader.SetMaterial("u_material", meshData.Mat);
-
-	glBindVertexArray(meshData.VAO);
-	glDrawElements(GL_TRIANGLES, meshData.NumIndices, GL_UNSIGNED_INT, 0);
-    }
 }
 
 void Window::Init()
@@ -108,46 +88,46 @@ void Window::Init()
 
 void Window::MainLoop()
 {
-    std::vector<float> cubeVertices={
-        // positions        // texcoords (2D TEXTURE)
+     float cubeVertices[]={
+        // positions        // texcoords
         // BACK
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // A 0 
-         0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // B 1 
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // C 2 
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // D 3 
+        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
 
         // RIGHT
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // B 4 
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // C 5 
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // F 6 
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // G 7 
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
         // FRONT
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // E 8 
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // F 9 
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // G 10 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // H 11 
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
         // TOP
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // C 12 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // D 13 
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, // E 14 
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // F 15 
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
         // LEFT
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // A 16
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // D 17
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // E 18
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // H 19
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
 
         // BOTTOM
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // A 20 
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // B 21 
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f, // G 22 
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f  // H 23
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f
     };
 
-    std::vector<unsigned int> cubeIndices = {
+    unsigned int cubeIndices[] = {
         0, 1, 3,
         3, 1, 2,
         5, 4, 7,
@@ -162,36 +142,26 @@ void Window::MainLoop()
         21, 23, 22
     };
 
-    std::vector<VertexAttribProperties> cubeVertexAttributes = {
-	{ 0, 3, 5*sizeof(float), 0  },
-	{ 2, 2, 5*sizeof(float), 3*sizeof(float) }
-    };
-
-    Texture2D cubeTexture = ObjectLoader::LoadTextureFromFile("textures/container.jpg");
-
-    Material cubeMaterial;
-    cubeMaterial.DiffuseMaps.push_back(cubeTexture);
-
     StaticMesh cubeMesh(
-	cubeVertices,
-	cubeIndices,
-	cubeVertexAttributes,
-	cubeMaterial
+	    cubeVertices, 
+	    sizeof(cubeVertices), 
+	    static_cast<unsigned int>(sizeof(cubeIndices) / sizeof(float)),
+	    cubeIndices,
+	    sizeof(cubeIndices)
     );
+    cubeMesh.SetVertexAttribute(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+    cubeMesh.SetVertexAttribute(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(3*sizeof(float)));
 
-    Entity cubeEntity(cubeMesh);
-
-    StaticMesh noMatCubeMesh(cubeVertices, cubeIndices, cubeVertexAttributes);
-    Entity noMatCubeEntity(noMatCubeMesh);
-
-    ObjectLoader::Model backpackModel = ObjectLoader::LoadModel("models/backpack/backpack.obj");
-    StaticMesh backpackMesh(backpackModel.Mesh);
-    Entity backpackEntity(backpackMesh);
-
+    Shader cubeShader("shaders/old/cube_vert.glsl", "shaders/old/cube_frag.glsl");
+    cubeShader.Use();
+    cubeShader.SetVec3("customColor", glm::vec3(1.0f, 1.0f, 1.0f));
+    
+    StaticMeshEntity cubeEntity(std::move(cubeMesh));
+    cubeEntity.Transform.SetPosition(glm::vec3(3.0f, 0.0f, 0.0f));
 
     Camera camera;
     camera.Transform.SetPosition(glm::vec3(0.0f, 0.0f, 3.0f));
-
+    
     float pNear =  0.1f;
     float pFar  = 100.0f;
     glm::mat4 projection = glm::perspective(
@@ -201,19 +171,81 @@ void Window::MainLoop()
 	pFar
     );
 
-    
-    Shader basicShader("shaders/basic_shader.vert", "shaders/basic_shader.frag");
+    Model backpack = ObjectLoader::LoadModel("models/backpack/backpack.obj");
+    ModelEntity backpackEntity(std::move(backpack));
+    backpackEntity.Transform.SetPosition(glm::vec3(0.0f));
+
+    Model girl = ObjectLoader::LoadModel("models/girl_obj/girl OBJ.obj");
+    ModelEntity girlEntity(std::move(girl));
+    girlEntity.Transform.SetPosition(glm::vec3(4.0f, 0.0f, 0.0f));
     
 
+    Model girlFBX = ObjectLoader::LoadModel("models/girl_fbx/GIRL fbx.fbx");
+    ModelEntity gf_Entity(std::move(girlFBX));
+    gf_Entity.Transform.SetPosition(glm::vec3(2.0f, 0.0f, 0.0f));
+    /* gf_Entity.Transform.SetRotation(glm::vec3(90.0f, 0.0f, 0.0f)); */
+    gf_Entity.Transform.Rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+    // light source
+    glm::vec3 ambient(0.2f);
+    glm::vec3 diffuse(1.0f);
+    glm::vec3 specular(1.0f);
+
+    float attConst = 1.0f;
+    float attLinear = 0.9f;
+    float attQuad = 0.032f;
     
-    std::unordered_map<std::string, Entity&> entitiesNamesMap = {
-	{"Cube", cubeEntity},
-	{"NoMatCube", noMatCubeEntity},
-	{"Backpack", backpackEntity}
-    };
+    PointLight pointLight(
+	cubeEntity.Transform.GetPosition(),
+	ambient,
+	diffuse,
+	specular,
+	attConst,
+	attLinear,
+	attQuad
+    );
+    pointLight.UniformName = "u_pointLight";
+
+
+    SpotLight spotLight(
+	camera.Transform.GetPosition(),
+	camera.GetFrontVector(),
+	ambient,
+	diffuse,
+	specular,
+	12.5f,
+	17.5f,
+	attConst,
+	attLinear,
+	attQuad
+    );
+    spotLight.UniformName = "u_spotLight";
+
+
+    Shader lightingShader("shaders/entity_lighting.vert", "shaders/entity_lighting.frag");
+
 
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
+
+
+    auto updateAndDrawEntity = [&deltaTime, &camera, &projection](DrawableEntity& entity, const Shader& shader) {
+	shader.Use();
+	shader.SetMat4("u_projection", projection);
+	shader.SetMat4("u_view", camera.GetLookAtMatrix());
+
+	entity.Update(deltaTime);
+	entity.Draw(shader);
+    };
+
+    
+    std::unordered_map<std::string, DrawableEntity&> entitiesMap = {
+	{"Backpack", backpackEntity},
+	{"GirlOBJ", girlEntity},
+	{"GirlFBX", gf_Entity}
+    };
+
+
     while (!glfwWindowShouldClose(m_glfwWindow))
     {
         float currentFrame = (float)glfwGetTime();
@@ -228,7 +260,7 @@ void Window::MainLoop()
 
         UIHelper::FrameStatsWindow(deltaTime);
 	
-	UIHelper::EntityPropertiesManager(entitiesNamesMap);
+	UIHelper::EntityPropertiesManager(entitiesMap);
 
         if (g_bResized)
             this->updateWindowProperties();
@@ -279,10 +311,38 @@ void Window::MainLoop()
             pFar
         );
 
-		
-	updateAndDrawEntity(cubeEntity, basicShader, deltaTime, camera, projection);
-	updateAndDrawEntity(noMatCubeEntity, basicShader, deltaTime, camera, projection);
-	updateAndDrawEntity(backpackEntity, basicShader, deltaTime, camera, projection);
+	// light source cube
+	cubeShader.Use();
+	cubeShader.SetVec3("u_customColor", glm::vec3(1.0f));	
+	updateAndDrawEntity(cubeEntity, cubeShader);
+
+
+	// backpack drawing with lighting
+	lightingShader.Use();
+	lightingShader.SetBool("u_usePointLight", true);
+	pointLight.Position = cubeEntity.Transform.GetPosition();
+	pointLight.SetLightUniforms(lightingShader);
+
+
+	lightingShader.SetBool("u_useSpotLight", true);
+	spotLight.Position = camera.Transform.GetPosition();
+	spotLight.Direction = camera.GetFrontVector();
+	spotLight.SetLightUniforms(lightingShader);
+
+	updateAndDrawEntity(backpackEntity, lightingShader);	
+    
+	//lightingShader.SetBool("u_DEBUG_noRenderMaterial", true);
+	updateAndDrawEntity(girlEntity, lightingShader);
+	updateAndDrawEntity(gf_Entity, lightingShader);
+
+	// light source orbit
+	float radius = 3.0f;
+	float time = static_cast<float>(glfwGetTime());
+	float x = radius * std::sin(time);
+	float z = radius * std::cos(time);
+	float y = 0.0f;
+	cubeEntity.Transform.SetPosition(glm::vec3(x, y, z));
+	
 
 	UIHelper::Render();
 

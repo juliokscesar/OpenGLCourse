@@ -1,5 +1,6 @@
 #include "UIHelper.hpp"
-#include "glm/gtc/type_ptr.hpp"
+
+#include <glm/gtc/type_ptr.hpp>
 
 
 
@@ -50,7 +51,7 @@ namespace UIHelper
         ImGui::End();
     }
 
-    void EntityPropertiesManager(const std::unordered_map<std::string, DrawableEntity&>& entities)
+    void EntityPropertiesManager(const std::unordered_map<std::string, Entity&>& entities)
     {
 	ImGui::Begin("Entity Properties");
 

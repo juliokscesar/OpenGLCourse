@@ -3,7 +3,6 @@
 #include <glad/glad.h>
 
 #include <iostream>
-#include <cstddef>
 #include <unordered_map>
 #include <filesystem>
 
@@ -44,7 +43,9 @@ static std::string recursiveSearchFullPath(const std::filesystem::path& path, co
     return "";
 }
 
-unsigned int LoadTextureFromFile(const std::string &path)
+namespace ObjectLoader
+{
+Texture2D LoadTextureFromFile(const std::string &path)
 {
     std::string fullPath = recursiveSearchFullPath(".", path);
 
@@ -55,7 +56,7 @@ unsigned int LoadTextureFromFile(const std::string &path)
     {
 	std::cerr << "Texture to failed to load from path given " << path << " using fullPath found " << fullPath << '\n';
 	stbi_image_free(data);
-	return 0;
+	return Texture2D();
     }
 
     GLenum format;
@@ -66,126 +67,16 @@ unsigned int LoadTextureFromFile(const std::string &path)
     else if (nrChannels == 4)
 	format = GL_RGBA;
 
+    Texture2DProperties texProps{width, height, format, path};
 
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    glTexImage2D(
-	GL_TEXTURE_2D,
-	0,
-	format,
-	width,
-	height,
-	0,
-	format,
-	GL_UNSIGNED_BYTE,
-	data
-    );
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    // wrap settings
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // filter settings (with mipmap for min)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+    Texture2D texture(data, texProps);
     stbi_image_free(data);
-
-    return textureID;
+    return texture;
 }
 
 
 
-Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const Material& material)
-    : Vertices(vertices), Indices(indices), Mat(material)
-{
-    setupRenderData();
-}
-
-void Mesh::setupRenderData()
-{
-    glGenVertexArrays(1, &m_VAO);
-    glGenBuffers(1, &m_VBO);
-    glGenBuffers(1, &m_EBO);
-
-    glBindVertexArray(m_VAO);
-
-    /// VBO initialization
-    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    
-    const size_t vboSize = Vertices.size() * sizeof(Vertex);
-    glBufferData(GL_ARRAY_BUFFER, vboSize, Vertices.data(), GL_STATIC_DRAW);
-    
-    /// EBO initialization
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-
-    const size_t eboSize = Indices.size() * sizeof(unsigned int);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboSize, Indices.data(), GL_STATIC_DRAW);
-
-    /// Vertex attributes setup
-    constexpr size_t ATT_STRIDE = sizeof(Vertex);
-
-    // position vertex attribute
-    glVertexAttribPointer(
-	    0, 
-	    3, 
-	    GL_FLOAT, 
-	    GL_FALSE, 
-	    ATT_STRIDE, 
-	    (void*)0
-    );
-    glEnableVertexAttribArray(0);
-
-    // normals vertex attribute
-    glVertexAttribPointer(
-	    1, 
-	    3, 
-	    GL_FLOAT, 
-	    GL_FALSE, 
-	    ATT_STRIDE, 
-	    (void*)offsetof(Vertex, Normal)
-    );
-    glEnableVertexAttribArray(1); 
-
-    // texcoords vertex attribute
-    glVertexAttribPointer(
-	    2, 
-	    2, 
-	    GL_FLOAT, 
-	    GL_FALSE, 
-	    ATT_STRIDE, 
-	    (void*)offsetof(Vertex, TexCoords)
-    );
-    glEnableVertexAttribArray(2);
-
-
-    m_numIndices = Indices.size();
-    Vertices.clear();
-    Indices.clear();
-}
-
-void Mesh::Draw() const noexcept
-{
-    glBindVertexArray(m_VAO);
-    
-    glDrawElements(GL_TRIANGLES, m_numIndices, GL_UNSIGNED_INT, 0);
-}
-
-
-
-Model::Model(const std::vector<Mesh>& meshes, const std::string& path)
-    : m_meshes(meshes), m_path(path)
-{
-}
-
-
-
-Model ObjectLoader::LoadModel(const std::string &path)
+Model LoadModel(const std::string &path)
 {
     Model out{};
 
@@ -202,15 +93,15 @@ Model ObjectLoader::LoadModel(const std::string &path)
 	std::cerr <<"LoadModel assimp error when loading " << path << ": " << importer.GetErrorString() << '\n';
     }
     
-    out.GetMeshes().reserve(scene->mNumMeshes);
-    out.SetPath(path);
+    out.Mesh.GetSubMeshesRef().reserve(scene->mNumMeshes);
+    out.Path = path;
 
-    ProcessAssimpNode(scene->mRootNode, scene, out.GetMeshes());
+    ProcessAssimpNode(scene->mRootNode, scene, out.Mesh.GetSubMeshesRef());
 
     return out;
 }
 
-void ObjectLoader::ProcessAssimpNode(aiNode *node, const aiScene *scene, std::vector<Mesh> &meshBuffer)
+void ProcessAssimpNode(aiNode *node, const aiScene *scene, std::vector<MeshData> &meshBuffer)
 {
     // Process all node's meshes (if any)
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -229,7 +120,7 @@ void ObjectLoader::ProcessAssimpNode(aiNode *node, const aiScene *scene, std::ve
     }
 }
 
-Mesh ObjectLoader::ProcessAssimpMesh(aiMesh *mesh, const aiScene *scene)
+MeshData ProcessAssimpMesh(aiMesh *mesh, const aiScene *scene)
 {
     // First, process each mesh Vertex (posVertex, normal and texcoord)
     std::vector<Vertex> vertices;
@@ -309,14 +200,14 @@ Mesh ObjectLoader::ProcessAssimpMesh(aiMesh *mesh, const aiScene *scene)
 	meshMaterial.Shininess = shininess;
     }
 
-    return Mesh(vertices, indices, meshMaterial);
+    return MeshData(vertices, indices, meshMaterial);
 }
 
-std::vector<Texture> ObjectLoader::LoadMaterialTextures(aiMaterial *mat, aiTextureType type)
+std::vector<Texture2D> LoadMaterialTextures(aiMaterial *mat, aiTextureType type)
 {
-    static std::unordered_map<std::string, Texture> s_loadedTextures;
+    static std::unordered_map<std::string, Texture2D> s_loadedTextures;
 
-    std::vector<Texture> textures;
+    std::vector<Texture2D> textures;
     const unsigned int textureCount = mat->GetTextureCount(type);
     
     for (unsigned int i = 0; i < textureCount; i++)
@@ -332,26 +223,7 @@ std::vector<Texture> ObjectLoader::LoadMaterialTextures(aiMaterial *mat, aiTextu
 	    continue;
 	}
 
-	Texture texture;
-	texture.glID = LoadTextureFromFile(path);
-	
-	switch (type)
-	{
-	case (aiTextureType_DIFFUSE):
-	    texture.Type = TextureType::DIFFUSE;
-	    break;
-	
-	case (aiTextureType_SPECULAR):
-	    texture.Type = TextureType::SPECULAR;
-	    break;
-	
-	// just to get rid of warnings
-	default:
-	    texture.Type = TextureType::DIFFUSE;
-	    break;
-	}
-
-	texture.Path = aipath.C_Str();
+	Texture2D texture = LoadTextureFromFile(path);
 
 	textures.push_back(texture);
 	s_loadedTextures[path] = texture;
@@ -359,4 +231,4 @@ std::vector<Texture> ObjectLoader::LoadMaterialTextures(aiMaterial *mat, aiTextu
 
     return textures;
 }
-
+}

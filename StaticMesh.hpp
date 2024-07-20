@@ -2,57 +2,80 @@
 
 #include <glad/glad.h>
 
-#include <utility>
+#include <glm/glm.hpp>
 
+#include <utility>
+#include <vector>
+
+#include "Material.hpp"
+
+struct Vertex
+{
+    glm::vec3 Position;
+    glm::vec3 Normal;
+    glm::vec2 TexCoords;
+};
+
+struct VertexAttribProperties
+{
+    unsigned int Location = 0;
+    unsigned int NumValues = 0;
+    size_t Stride = 0;
+    size_t Offset = 0;
+};
+
+struct MeshData
+{
+    MeshData(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs);
+    MeshData(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs, const Material& mat);
+    MeshData(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const Material& material);
+
+    unsigned int VAO = 0;
+    unsigned int VBO = 0;
+    unsigned int EBO = 0;
+    unsigned int NumIndices = 0;
+    Material Mat;
+    bool UseMaterial = true;
+};
 
 class StaticMesh
 {
 public:
-    StaticMesh()
-        : m_VBO(0), m_VAO(0), m_EBO(0), m_vertices(0), m_useIndexedDrawing(false) {}
+    StaticMesh() = default;
 
-    StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices);
-    StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices, GLuint indices[], GLsizeiptr indSize);
+    StaticMesh(const std::vector<MeshData>& subMeshes);
+
+    StaticMesh(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs);
+    StaticMesh(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs, const Material& mat);
 
     StaticMesh(const StaticMesh& other);
     StaticMesh(StaticMesh&& other);
 
     StaticMesh& operator=(const StaticMesh& other)
     {
-        if (this != &other)
-        {
-            this->m_VBO = other.m_VBO;
-            this->m_VAO = other.m_VAO;
-            this->m_vertices = other.m_vertices;
-            this->m_useIndexedDrawing = other.m_useIndexedDrawing;
-        }
+	if (this != &other)
+	{
+	    m_meshData = other.m_meshData;
+	}
 
-        return *this;
+	return *this;
     }
 
     StaticMesh& operator=(StaticMesh&& other)
     {
 	if (this != &other)
 	{
-	    this->m_VBO = std::move(other.m_VBO);
-	    this->m_VAO = std::move(other.m_VAO);
-	    this->m_vertices = std::move(other.m_vertices);
-	    this->m_useIndexedDrawing = std::move(other.m_useIndexedDrawing);
+	    m_meshData = std::move(other.m_meshData);
 	}
 
 	return *this;
     }
 
-    void SetVertexAttribute(GLuint loc, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* offsetSize) const noexcept;
-    void SetEnabledVertexAttribute(GLuint loc, bool enable) const noexcept;
+    inline std::vector<MeshData>& GetSubMeshesRef() noexcept { return m_meshData; }
 
     void Draw() const noexcept;
 
-
 private:
-    GLuint m_VBO, m_VAO;
-    GLuint m_EBO;
-    GLuint m_vertices;
-
-    bool m_useIndexedDrawing;
+    std::vector<MeshData> m_meshData;
 };
+
