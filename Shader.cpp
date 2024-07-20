@@ -124,6 +124,12 @@ void Shader::SetInt(const std::string & name, int val) const noexcept
     glUniform1i(loc, val);
 }
 
+void Shader::SetUInt(const std::string& name, unsigned int val) const noexcept
+{
+    GLint loc = glGetUniformLocation(ID, name.c_str());
+    glUniform1ui(loc, val);
+}
+
 void Shader::SetFloat(const std::string &name, float val) const noexcept
 {
     GLint loc = glGetUniformLocation(ID, name.c_str());

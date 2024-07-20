@@ -25,6 +25,7 @@ class ModelEntity : public DrawableEntity
 {
 public:
     ModelEntity(const Model& model);
+    ModelEntity(Model&& model);
 
     void Draw(const Shader& shader) override;
     void Update(float deltaTime) override;
@@ -40,6 +41,7 @@ class StaticMeshEntity : public DrawableEntity
 {
 public:
     StaticMeshEntity(const StaticMesh& staticMesh);
+    StaticMeshEntity(StaticMesh&& staticMesh);
 
     void Draw(const Shader& shader) override;
     void Update(float deltaTime) override;

@@ -22,6 +22,7 @@ public:
 
     void SetBool(const std::string& name, bool val) const noexcept;
     void SetInt(const std::string& name, int val) const noexcept;
+    void SetUInt(const std::string& name, unsigned int val) const noexcept;
     void SetFloat(const std::string& name, float val) const noexcept;
     void SetMat4(const std::string& name, const glm::mat4& m) const noexcept;
     void SetVec3(const std::string& name, const glm::vec3& v) const noexcept;

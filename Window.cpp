@@ -10,6 +10,7 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 
 #include <stb/stb_image.h>
+#include <utility>
 
 #include "Shader.hpp"
 #include "Input.hpp"
@@ -154,7 +155,7 @@ void Window::MainLoop()
     cubeShader.Use();
     cubeShader.SetVec3("customColor", glm::vec3(1.0f, 1.0f, 1.0f));
     
-    StaticMeshEntity cubeEntity(cubeMesh);
+    StaticMeshEntity cubeEntity(std::move(cubeMesh));
     cubeEntity.Transform.SetPosition(glm::vec3(3.0f, 0.0f, 0.0f));
 
     Camera camera;
@@ -170,18 +171,19 @@ void Window::MainLoop()
     );
 
     Model backpack = ObjectLoader::LoadModel("models/backpack/backpack.obj");
-    ModelEntity backpackEntity(backpack);
+    ModelEntity backpackEntity(std::move(backpack));
     backpackEntity.Transform.SetPosition(glm::vec3(0.0f));
 
     Model girl = ObjectLoader::LoadModel("models/girl_obj/girl OBJ.obj");
-    ModelEntity girlEntity(girl);
+    ModelEntity girlEntity(std::move(girl));
     girlEntity.Transform.SetPosition(glm::vec3(4.0f, 0.0f, 0.0f));
     
 
     Model girlFBX = ObjectLoader::LoadModel("models/girl_fbx/GIRL fbx.fbx");
-    ModelEntity gf_Entity(girlFBX);
+    ModelEntity gf_Entity(std::move(girlFBX));
     gf_Entity.Transform.SetPosition(glm::vec3(2.0f, 0.0f, 0.0f));
-    gf_Entity.Transform.SetRotation(glm::vec3(90.0f, 0.0f, 0.0f));
+    /* gf_Entity.Transform.SetRotation(glm::vec3(90.0f, 0.0f, 0.0f)); */
+    gf_Entity.Transform.Rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
     // light source
     glm::vec3 ambient(0.2f);

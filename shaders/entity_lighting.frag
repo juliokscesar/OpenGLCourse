@@ -161,12 +161,13 @@ uniform bool u_DEBUG_noRenderMaterial;
 
 void main()
 {
+    vec3 resultColor = vec3(0.0);
+
     // Test first with only one diffuse map and one specular map
     vec3 texDiffuse = vec3(texture(u_material.texture_diffuse[0], TexCoords));
 
     vec3 texSpecular = vec3(texture(u_material.texture_specular[0], TexCoords));
 
-    vec3 resultColor = vec3(0.0);
 
     if (u_useDirectionalLight)
         resultColor += CalculateDirectionalLight(u_dirLight, FragNormal, texDiffuse, texSpecular);

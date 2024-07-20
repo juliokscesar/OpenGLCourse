@@ -27,7 +27,7 @@ struct Texture
 {
     unsigned int glID;
     TextureType Type;
-    std::string Path; // TODO: change this to use std::hash
+    std::string Path; 
 };
 
 unsigned int LoadTextureFromFile(const std::string& path);
@@ -59,7 +59,8 @@ public:
 	Mat(other.Mat),
 	m_VAO(other.m_VAO), 
 	m_VBO(other.m_VBO), 
-	m_EBO(other.m_EBO) {}
+	m_EBO(other.m_EBO),
+	m_numIndices(other.m_numIndices) {}
 
     Mesh(Mesh&& other)
 	: 
@@ -68,7 +69,8 @@ public:
 	Mat(std::move(other.Mat)),
 	m_VAO(std::move(other.m_VAO)), 
 	m_VBO(std::move(other.m_VBO)), 
-	m_EBO(std::move(other.m_EBO)) {}
+	m_EBO(std::move(other.m_EBO)),
+	m_numIndices(std::move(other.m_numIndices)) {}
 
     Mesh& operator=(const Mesh& other)
     {
@@ -81,6 +83,7 @@ public:
 	    this->m_VAO = other.m_VAO;
 	    this->m_VBO = other.m_VBO;
 	    this->m_EBO = other.m_EBO;
+	    this->m_numIndices = other.m_numIndices;
 	}
 
 	return *this;
@@ -97,6 +100,7 @@ public:
 	    this->m_VAO = std::move(other.m_VAO);
 	    this->m_VBO = std::move(other.m_VBO);
 	    this->m_EBO = std::move(other.m_EBO);
+	    this->m_numIndices = std::move(other.m_numIndices);
 	}
 
 	return *this;
@@ -117,6 +121,7 @@ private:
     unsigned int m_VAO = 0;
     unsigned int m_VBO = 0;
     unsigned int m_EBO = 0;
+    unsigned int m_numIndices = 0;
 };
 
 // A Model is an object that contains multiple meshes

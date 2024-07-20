@@ -17,6 +17,11 @@ ModelEntity::ModelEntity(const Model& model)
 {
 }
 
+ModelEntity::ModelEntity(Model&& model)
+    : m_model(model)
+{
+}
+
 void ModelEntity::Draw(const Shader& shader)
 {
     DrawableEntity::Draw(shader);
@@ -35,6 +40,11 @@ void ModelEntity::Update(float deltaTime)
 
 
 StaticMeshEntity::StaticMeshEntity(const StaticMesh& staticMesh)
+    : m_sMesh(staticMesh)
+{
+}
+
+StaticMeshEntity::StaticMeshEntity(StaticMesh&& staticMesh)
     : m_sMesh(staticMesh)
 {
 }

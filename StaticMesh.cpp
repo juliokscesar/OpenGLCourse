@@ -50,6 +50,11 @@ StaticMesh::StaticMesh(const StaticMesh &other)
     this->m_useIndexedDrawing = other.m_useIndexedDrawing;
 }
 
+StaticMesh::StaticMesh(StaticMesh&& other)
+{
+    *this = std::move(other);
+}
+
 void StaticMesh::SetVertexAttribute(GLuint loc, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *offsetSize) const noexcept
 {
     glBindVertexArray(m_VAO);

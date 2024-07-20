@@ -21,13 +21,11 @@ void TransformComponent::SetRotation(const glm::vec3 &rot)
 
 void TransformComponent::Rotate(float deg, const glm::vec3& axis)
 {
-    float rad = glm::radians(deg);
-
     // TODO: implement rotation around other axis
     // this works if axis is (1,0,0) (0,1,0) or (0,0,1)
     // but i have no idea if it works around other axis
     glm::vec3 norm = glm::normalize(axis);
-    glm::vec3 newRot = norm * rad; 
+    glm::vec3 newRot = norm * deg; 
 
     SetRotation(newRot);
 }

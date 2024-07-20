@@ -162,13 +162,18 @@ void Mesh::setupRenderData()
 	    (void*)offsetof(Vertex, TexCoords)
     );
     glEnableVertexAttribArray(2);
+
+
+    m_numIndices = Indices.size();
+    Vertices.clear();
+    Indices.clear();
 }
 
 void Mesh::Draw() const noexcept
 {
     glBindVertexArray(m_VAO);
     
-    glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, m_numIndices, GL_UNSIGNED_INT, 0);
 }
 
 

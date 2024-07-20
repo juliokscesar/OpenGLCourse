@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include <utility>
+
 
 class StaticMesh
 {
@@ -13,6 +15,7 @@ public:
     StaticMesh(float verticesData[], GLsizeiptr verticesSize, GLuint numVertices, GLuint indices[], GLsizeiptr indSize);
 
     StaticMesh(const StaticMesh& other);
+    StaticMesh(StaticMesh&& other);
 
     StaticMesh& operator=(const StaticMesh& other)
     {
@@ -25,6 +28,19 @@ public:
         }
 
         return *this;
+    }
+
+    StaticMesh& operator=(StaticMesh&& other)
+    {
+	if (this != &other)
+	{
+	    this->m_VBO = std::move(other.m_VBO);
+	    this->m_VAO = std::move(other.m_VAO);
+	    this->m_vertices = std::move(other.m_vertices);
+	    this->m_useIndexedDrawing = std::move(other.m_useIndexedDrawing);
+	}
+
+	return *this;
     }
 
     void SetVertexAttribute(GLuint loc, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* offsetSize) const noexcept;
