@@ -6,3 +6,10 @@ build/
 models/*
 
 imgui.ini
+
+ext/assimp/bin/
+ext/assimp/CMakeFiles/
+ext/assimp/lib/
+ext/assimp/*.sln
+ext/assimp/.vcxproj*
+
