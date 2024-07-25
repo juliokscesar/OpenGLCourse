@@ -6,6 +6,7 @@ struct Material
 {
     sampler2D texture_diffuse[MAX_NUMBER_SAMPLER2D];
     sampler2D texture_specular[MAX_NUMBER_SAMPLER2D];
+    float tiling_factor;
     float shininess;
 };
 uniform Material u_material;
@@ -19,7 +20,7 @@ void main()
     
     if (u_useMaterial)
     {
-        resultColor = texture(u_material.texture_diffuse[0], TexCoords);
+        resultColor = texture(u_material.texture_diffuse[0], TexCoords * u_material.tiling_factor);
 	if (resultColor.a < 0.5)
 	    discard;
     }

@@ -6,6 +6,7 @@ struct Material
 {
     sampler2D texture_diffuse[MAX_NUMBER_SAMPLER2D];
     sampler2D texture_specular[MAX_NUMBER_SAMPLER2D];
+    float tiling_factor;
     float shininess;
 };
 uniform Material u_material;
@@ -28,7 +29,7 @@ void main()
     vec4 resultColor = vec4(1.0f);
     
     if (u_useMaterial)
-        resultColor = texture(u_material.texture_diffuse[0], TexCoords);
+        resultColor = texture(u_material.texture_diffuse[0], TexCoords * u_material.tiling_factor);
 
     // visualizing depth-buffer
     // resultColor = vec4(vec3(gl_FragCoord.z), 1.0);

@@ -10,12 +10,14 @@ struct Material
 {
     sampler2D texture_diffuse[MAX_NUMBER_SAMPLER2D];
     sampler2D texture_specular[MAX_NUMBER_SAMPLER2D];
+    float tiling_factor;
+    float shininess;
 };
 uniform Material u_material;
 
 void main()
 {
-    gl_FragColor = texture(u_material.texture_diffuse[0], TexCoords);
+    gl_FragColor = texture(u_material.texture_diffuse[0], TexCoords * u_material.tiling_factor);
     //gl_FragColor = vec4(FragPos + FragNormal, 1.0);
 }
 

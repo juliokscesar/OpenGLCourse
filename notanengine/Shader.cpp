@@ -213,38 +213,39 @@ void Shader::SetMaterial(const std::string& name, Material& mat) const noexcept
     const size_t specularSize = mat.SpecularMaps.size();
     if (diffuseSize + specularSize > MAX_NUMBER_SAMPLER2D)
     {
-	std::cout << "diffuseSize of " << diffuseSize << " and specularSize of" << specularSize << " exceeds MAX_NUMBER_SAMPLER2D of " << MAX_NUMBER_SAMPLER2D << '\n';
-	return;
+        std::cout << "diffuseSize of " << diffuseSize << " and specularSize of" << specularSize << " exceeds MAX_NUMBER_SAMPLER2D of " << MAX_NUMBER_SAMPLER2D << '\n';
+        return;
     }
 
     // set diffuse textures in EVEN-numbered texture units
     for (int unit = 0, count = 0; count < diffuseSize; count++)
     {
-	Texture2D& diffuseTex = mat.DiffuseMaps[count];
-	diffuseTex.SetUnit(unit);
-	diffuseTex.Bind();
+        Texture2D& diffuseTex = mat.DiffuseMaps[count];
+        diffuseTex.SetUnit(unit);
+        diffuseTex.Bind();
 
-	char texIndex = count + '0';
-	const std::string uniformTex(name + ".texture_diffuse[" + texIndex + ']');
-	SetInt(uniformTex, unit);
-	unit += 2;
+        char texIndex = count + '0';
+        const std::string uniformTex(name + ".texture_diffuse[" + texIndex + ']');
+        SetInt(uniformTex, unit);
+        unit += 2;
+        }
+
+        // set specular textures in ODD-numbered texture units
+        for (int unit = 1, count = 0; count < specularSize; count++)
+        {
+        Texture2D& specularTex = mat.SpecularMaps[count];
+        specularTex.SetUnit(unit);
+        specularTex.Bind();
+
+
+        char texIndex = count + '0';
+        const std::string uniformTex(name + ".texture_specular[" + texIndex + ']');
+        SetInt(uniformTex, unit);
+
+        unit += 2;
     }
 
-    // set specular textures in ODD-numbered texture units
-    for (int unit = 1, count = 0; count < specularSize; count++)
-    {
-	Texture2D& specularTex = mat.SpecularMaps[count];
-	specularTex.SetUnit(unit);
-	specularTex.Bind();
-
-
-	char texIndex = count + '0';
-	const std::string uniformTex(name + ".texture_specular[" + texIndex + ']');
-	SetInt(uniformTex, unit);
-
-	unit += 2;
-    }
-
+    SetFloat(name + ".tiling_factor", mat.TilingFactor);
     SetFloat(name + ".shininess", mat.Shininess);
 
     glActiveTexture(GL_TEXTURE0);

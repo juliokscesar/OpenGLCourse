@@ -87,7 +87,7 @@ void Window::Init()
     // enable stencil test
     glEnable(GL_STENCIL_TEST);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
 
     // Initiate ImGui
     UIHelper::Init(m_glfwWindow);
@@ -135,6 +135,7 @@ void Window::MainLoop()
     Entity floor(SimpleMeshFactory::Plane());
     Material floorMat;
     floorMat.DiffuseMaps.push_back(ResourceManager::LoadTextureFromFile("textures/trak_tile.jpg"));
+    floorMat.TilingFactor = 2.0f;
     floor.GetMeshRef().SetMaterial(floorMat);
     floor.Transform.SetPosition(0.0f, -0.5f, 0.0f);
     floor.Transform.Scale(10.0f);
@@ -176,6 +177,7 @@ void Window::MainLoop()
         lastFrame = currentFrame;
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearStencil(0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // start dear imgui frame
@@ -246,58 +248,24 @@ void Window::MainLoop()
         lightingShader.SetBool("u_useDirectionalLight", true);
         dirLight.SetLightUniforms(lightingShader);
 
-        //Render::UpdateAndDrawEntityMap(entitiesMap, deltaTime, camera, projection);
+        /* Render::UpdateAndDrawEntityMap(entitiesMap, deltaTime, camera, projection); */
+
+	Render::UpdateAndDrawEntity(floor, basicShader, deltaTime, camera, projection);
 
 #define TEST_STENCIL_TEST 1
 #if TEST_STENCIL_TEST
+	
+	const glm::vec3 outlineColor = glm::vec3(1.0f, 0.0f, 0.0f);
+	cube.Update(deltaTime);
+	Render::DrawOutlineEntity(cube, basicShader, outlineShader, outlineColor, camera, projection);
 
-        // first ensure nothing is being written to stencil buffer
-        glStencilMask(0x00);
-
-        // and draw objects to not be outlined
-        Render::UpdateAndDrawEntity(floor, basicShader, deltaTime, camera, projection);
-
-        // now write to stencil buffer objects to be outlined
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(0xFF);
-
-        Render::UpdateAndDrawEntity(cube, basicShader, deltaTime, camera, projection);
-
-        // now draw slightly scaled up versions of objects
-        // but disable stencil writing and only draw where stencil value is not 1
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-        glStencilMask(0x00);
-        glDisable(GL_DEPTH_TEST);
-
-        glm::vec3 outlineColor(1.0f, 0.0f, 0.0f);
-        outlineShader.Use();
-        outlineShader.SetVec3("u_outlineColor", outlineColor);
-
-        Entity scaledCube(cube);
-        scaledCube.Transform.Scale(1.1f);
-
-        outlineShader.SetMat4("u_model", scaledCube.Transform.GetTransformMatrix());
-        outlineShader.SetMat4("u_view", camera.GetLookAtMatrix());
-        outlineShader.SetMat4("u_projection", projection);
-        Render::DrawStaticMesh(scaledCube.GetMeshRef());
-
-        Entity scaledCube2(cube2);
-        scaledCube2.Transform.Scale(1.1f);
-        
-        outlineShader.SetMat4("u_model", scaledCube2.Transform.GetTransformMatrix());
-        outlineShader.SetMat4("u_view", camera.GetLookAtMatrix());
-        outlineShader.SetMat4("u_projection", projection);
-        Render::DrawStaticMesh(scaledCube2.GetMeshRef());
-
-
-        // reenabble depth test and reset stencil values
-        glStencilMask(0xFF);
-        glStencilFunc(GL_ALWAYS, 0, 0xFF);
-        glEnable(GL_DEPTH_TEST);
+    
+	cube2.Update(deltaTime);
+	Render::DrawOutlineEntity(cube2, basicShader, outlineShader, outlineColor, camera, projection, 1.05f);
 
 #endif
 
-	    UIHelper::Render();
+	UIHelper::Render();
 
         glfwSwapBuffers(m_glfwWindow);
         glfwPollEvents();

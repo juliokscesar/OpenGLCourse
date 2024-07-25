@@ -1,6 +1,7 @@
 .vscode/
 .vs/
 *prog*
+*vcxproj*
 build/
 *compile_commands*
 .cache/

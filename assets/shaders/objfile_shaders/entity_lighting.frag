@@ -10,6 +10,7 @@ struct Material
 {
     sampler2D texture_diffuse[MAX_NUMBER_SAMPLER2D];
     sampler2D texture_specular[MAX_NUMBER_SAMPLER2D];
+    float tiling_factor;
     float shininess;
 };
 uniform Material u_material;
@@ -164,13 +165,13 @@ void main()
 {
     vec3 resultColor = vec3(0.0);
 
-    if (texture(u_material.texture_diffuse[0], TexCoords).a < 0.5)
-	discard;
+    if (texture(u_material.texture_diffuse[0], TexCoords * u_material.tiling_factor).a < 0.5)
+	    discard;
 
     // Test first with only one diffuse map and one specular map
-    vec3 texDiffuse = vec3(texture(u_material.texture_diffuse[0], TexCoords));
+    vec3 texDiffuse = vec3(texture(u_material.texture_diffuse[0], TexCoords * u_material.tiling_factor));
 
-    vec3 texSpecular = vec3(texture(u_material.texture_specular[0], TexCoords));
+    vec3 texSpecular = vec3(texture(u_material.texture_specular[0], TexCoords * u_material.tiling_factor));
 
 
     if (u_useDirectionalLight)

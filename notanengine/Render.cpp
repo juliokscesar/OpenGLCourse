@@ -1,27 +1,82 @@
 #include "Render.hpp"
+#include "StaticMesh.hpp"
+
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Render
 {
+    void DrawMeshData(MeshData& meshData)
+    {
+	glBindVertexArray(meshData.VAO);
+	
+	if (meshData.UseIndexedDrawing)
+	    glDrawElements(GL_TRIANGLES, meshData.NumIndices, GL_UNSIGNED_INT, 0);
+
+	else
+	    glDrawArrays(GL_TRIANGLES, 0, meshData.NumIndices);
+    }
+
     void DrawStaticMesh(StaticMesh& mesh)
     {
         for (auto& meshData : mesh.GetSubMeshesRef())
         {
-            glBindVertexArray(meshData.VAO);
-
-            if (meshData.UseIndexedDrawing)
-                glDrawElements(GL_TRIANGLES, meshData.NumIndices, GL_UNSIGNED_INT, 0);
-            else
-                glDrawArrays(GL_TRIANGLES, 0, meshData.NumIndices);
+	    DrawMeshData(meshData);
         }
     }
 
-    void UpdateAndDrawEntity(Entity &entity, const Shader &shader, float deltaTime, const Camera &camera, const glm::mat4 &projection)
+    void DrawOutlineStaticMesh(StaticMesh& mesh, const Shader& defaultShader, const Shader& outlineShader, const glm::vec3& outlineColor)
     {
-        entity.Update(deltaTime);
-        if (!entity.IsVisible())
-            return;
+	for (auto& meshData : mesh.GetSubMeshesRef())
+	{
+	    glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	    // Draw mesh without stencing
+	    // Disable stencil (no frags are discarded)
+	    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	    glStencilMask(0xFF);
 
-        shader.Use();
+	    defaultShader.Use();
+	    DrawMeshData(meshData);
+
+	    // Draw outline
+	    // enable stencil. now drawn mesh frags will have stenil value 1
+	    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	    glStencilMask(0x00);
+	    glDepthMask(0x00);
+	    glDepthFunc(GL_LESS);
+
+	    outlineShader.Use();
+	    outlineShader.SetVec3("u_outlineColor", outlineColor);
+	    DrawMeshData(meshData);
+
+	    // return to default stencil
+	    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	    glStencilMask(0xFF);
+	    glDepthMask(0xFF);
+	    glDepthFunc(GL_LESS);
+	}
+    }
+
+    void DrawOutlineEntity(Entity& entity, const Shader& defaultShader, const Shader& outlineShader, const glm::vec3& outlineColor, const Camera& camera, const glm::mat4& projection, float outlineFactor)
+    {
+	DrawEntity(entity, defaultShader, camera, projection);
+
+	defaultShader.Use();
+	defaultShader.SetMat4("u_model", entity.Transform.GetTransformMatrix());
+	defaultShader.SetMat4("u_view", camera.GetLookAtMatrix());
+	defaultShader.SetMat4("u_projection", projection); 
+	
+	outlineShader.Use();
+	const glm::mat4 scaledModel = glm::scale(entity.Transform.GetTransformMatrix(), glm::vec3(outlineFactor));
+	outlineShader.SetMat4("u_model", scaledModel);
+	outlineShader.SetMat4("u_view", camera.GetLookAtMatrix());
+	outlineShader.SetMat4("u_projection", projection);
+
+	DrawOutlineStaticMesh(entity.GetMeshRef(), defaultShader, outlineShader, outlineColor);
+    }
+
+    void DrawEntity(Entity& entity, const Shader& shader, const Camera& camera, const glm::mat4& projection)
+    {
+	shader.Use();
 
         shader.SetMat4("u_model", entity.Transform.GetTransformMatrix());
         shader.SetMat4("u_view", camera.GetLookAtMatrix());
@@ -40,13 +95,17 @@ namespace Render
             else if (meshData.UseMaterial)
                 shader.SetMaterial("u_material", meshData.Mat);
 
-            glBindVertexArray(meshData.VAO);
-
-            if (meshData.UseIndexedDrawing)
-                glDrawElements(GL_TRIANGLES, meshData.NumIndices, GL_UNSIGNED_INT, 0);
-            else
-                glDrawArrays(GL_TRIANGLES, 0, meshData.NumIndices);
+	    DrawMeshData(meshData);
         }
+    }
+
+    void UpdateAndDrawEntity(Entity &entity, const Shader &shader, float deltaTime, const Camera &camera, const glm::mat4 &projection)
+    {
+        entity.Update(deltaTime);
+        if (!entity.IsVisible())
+            return;
+
+	DrawEntity(entity, shader, camera, projection); 
     }
 
     void UpdateAndDrawEntityMap(const EntityRenderMap &entities, float deltaTime, const Camera &camera, const glm::mat4 &projection)
