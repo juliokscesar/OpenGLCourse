@@ -10,7 +10,7 @@
 /// ASSIMP LOADING FUNCTIONS
 //////////////////////////////////
 
-namespace ObjectLoader
+namespace ResourceManager
 {
     Texture2D LoadTextureFromFile(const std::string& path);
 

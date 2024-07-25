@@ -1,8 +1,8 @@
 if [[ ! -d ./build ]]; then
-    mkdir build
+    mkdir ./build
 fi
 
-cd build
+cd ./build
 cmake ..
 cmake --build .
 

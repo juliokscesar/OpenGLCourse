@@ -134,15 +134,15 @@ void Window::Init()
 
 void Window::MainLoop()
 {
-    ObjectLoader::Model backpackModel = ObjectLoader::LoadModel("models/backpack/backpack.obj");
-    Entity backpackEntity(backpackModel.Mesh);
-    backpackEntity.Transform.Scale(0.2f);
+    // ObjectLoader::Model backpackModel = ObjectLoader::LoadModel("models/backpack/backpack.obj");
+    // Entity backpackEntity(backpackModel.Mesh);
+    // backpackEntity.Transform.Scale(0.2f);
 
 
     stbi_set_flip_vertically_on_load(false);
 
-    Entity sponzaEntity(ObjectLoader::LoadModel("models/Sponza/sponza.obj").Mesh);
-    sponzaEntity.Transform.Scale(0.01f);
+    // Entity sponzaEntity(ObjectLoader::LoadModel("models/Sponza/sponza.obj").Mesh);
+    // sponzaEntity.Transform.Scale(0.01f);
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -167,8 +167,8 @@ void Window::MainLoop()
 
     
     std::unordered_map<std::string, std::tuple<Entity&, const Shader&>> entitiesNamesMap = {
-	{"Backpack", {backpackEntity, basicShader}},
-	{"Sponza", {sponzaEntity, basicShader}},
+	//{"Backpack", {backpackEntity, basicShader}},
+	//{"Sponza", {sponzaEntity, basicShader}},
     };
 
 
