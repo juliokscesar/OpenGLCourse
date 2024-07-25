@@ -62,8 +62,8 @@ static std::string recursiveSearchForFolder(const std::string& path, const std::
 static std::string g_assetsFullPath;
 void checkCurrentPath()
 {
-	if (std::filesystem::current_path().string().compare(g_assetsFullPath) != 0)
-		std::filesystem::current_path(g_assetsFullPath);
+    if (std::filesystem::current_path().string().compare(g_assetsFullPath) != 0)
+	std::filesystem::current_path(g_assetsFullPath);
 }
 
 
@@ -71,13 +71,16 @@ namespace ResourceManager
 {
     void InitializeLocations()
     {
-		std::filesystem::path currentPath = std::filesystem::current_path().string();
-		// keep going back until folder reaches root folder 'notanengine'
-		while (currentPath.filename() != "notanengine")
-			currentPath = currentPath.parent_path();
+	std::filesystem::path currentPath = std::filesystem::current_path().string();
+	// keep going back until folder reaches root folder 'notanengine'
+	while (currentPath.filename() != "OpenGLCourse")
+	{
+	    std::cout << "currentPath = " << currentPath << " filename()=" << currentPath.filename() << " parent_path=" << currentPath.parent_path() << '\n';
+	    currentPath = currentPath.parent_path();
+	}
 
-		g_assetsFullPath = recursiveSearchForFolder(currentPath.string(), "assets");
-		std::cout << "Updating g_assetsFullPath = " << g_assetsFullPath << '\n';
+	g_assetsFullPath = currentPath.string() + "/assets";
+	std::cout << "Updating g_assetsFullPath = " << g_assetsFullPath << '\n';
     }
 
     Shader LoadShader(const std::string &vertexPath, const std::string &fragPath)

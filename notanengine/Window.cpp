@@ -1,10 +1,6 @@
 #include "Window.hpp"
 
-#include <unordered_map>
 #include <vector>
-#include <array>
-#include <iostream>
-#include <filesystem>
 
 #include <GLFW/glfw3.h>
 #include <stdexcept>
@@ -159,14 +155,11 @@ void Window::MainLoop()
     Shader lightingShader = ResourceManager::LoadShader("shaders/objfile_shaders/entity_lighting.vert", "shaders/objfile_shaders/entity_lighting.frag");
 
 
-    Entity sniper(ResourceManager::LoadModel("models\\Sniper_Ammo FBX\\Sniper_AmmoTexture-Packed.fbx").Mesh);
-
-    stbi_set_flip_vertically_on_load(true);
-    Entity sponza(ResourceManager::LoadModel("models\\Sponza\\sponza.obj").Mesh);
+    stbi_set_flip_vertically_on_load(false);
+    Entity sponza(ResourceManager::LoadModel("models/Sponza/sponza.obj").Mesh);
     sponza.Transform.Scale(0.1f);
 
     EntityRenderMap entitiesMap = {
-        { "Sniper", { sniper, basicShader } },
         { "Sponza", { sponza, basicShader } },
     };
     
