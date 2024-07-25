@@ -1,5 +1,4 @@
 # OpenGLCourse
 This is all the code I'm using while reading [LearnOpenGL](https://learnopengl.com/).
 
-The old code is in `old_main.cpp`. Now I'm refactoring it in separate classes to help me
-locate myself and make the code readable.
+I won't be including any model file in this repository. Link to model files: https://drive.google.com/drive/folders/18CGXwVquHybcNFpOQFfpEoRaXOSA1BoO?usp=sharing
