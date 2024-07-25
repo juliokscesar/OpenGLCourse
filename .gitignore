@@ -1,4 +1,5 @@
 .vscode/
+.vs/
 *prog*
 build/
 *compile_commands*
