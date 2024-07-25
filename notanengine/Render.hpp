@@ -11,7 +11,7 @@ typedef std::unordered_map<std::string, std::tuple<Entity&, const Shader&>> Enti
 
 namespace Render
 {
+    void DrawStaticMesh(StaticMesh& mesh);
     void UpdateAndDrawEntity(Entity& entity, const Shader& shader, float deltaTime, const Camera& camera, const glm::mat4& projection);
-
     void UpdateAndDrawEntityMap(const EntityRenderMap& entities, float deltaTime, const Camera& camera, const glm::mat4& projection);
 }

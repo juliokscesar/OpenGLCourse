@@ -5,6 +5,11 @@ Entity::Entity()
 {
 }
 
+Entity::Entity(const Entity &other)
+    : Transform(other.Transform), m_mesh(other.m_mesh), m_visible(other.m_visible)
+{
+}
+
 Entity::Entity(const StaticMesh& mesh)
     : m_mesh(mesh)
 {

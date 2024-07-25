@@ -8,6 +8,8 @@ class Entity
 public:
     Entity();
 
+    Entity(const Entity& other);
+
     Entity(const StaticMesh& mesh);
 
     virtual void Update(float deltaTime);

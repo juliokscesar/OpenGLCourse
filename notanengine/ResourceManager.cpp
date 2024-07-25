@@ -79,7 +79,7 @@ namespace ResourceManager
 	    currentPath = currentPath.parent_path();
 	}
 
-	g_assetsFullPath = currentPath.string() + "/assets";
+	g_assetsFullPath = formatPath(currentPath.string() + "/assets");
 	std::cout << "Updating g_assetsFullPath = " << g_assetsFullPath << '\n';
     }
 

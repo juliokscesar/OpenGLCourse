@@ -2,6 +2,19 @@
 
 namespace Render
 {
+    void DrawStaticMesh(StaticMesh& mesh)
+    {
+        for (auto& meshData : mesh.GetSubMeshesRef())
+        {
+            glBindVertexArray(meshData.VAO);
+
+            if (meshData.UseIndexedDrawing)
+                glDrawElements(GL_TRIANGLES, meshData.NumIndices, GL_UNSIGNED_INT, 0);
+            else
+                glDrawArrays(GL_TRIANGLES, 0, meshData.NumIndices);
+        }
+    }
+
     void UpdateAndDrawEntity(Entity &entity, const Shader &shader, float deltaTime, const Camera &camera, const glm::mat4 &projection)
     {
         entity.Update(deltaTime);
