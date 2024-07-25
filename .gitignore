@@ -14,3 +14,5 @@ ext/assimp/lib/
 ext/assimp/*.sln
 ext/assimp/.vcxproj*
 
+*assimp-*.dll
+*assimp-*.pdb

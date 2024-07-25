@@ -5,11 +5,11 @@ cd ext\glfw
 if not exist build mkdir build
 cd build
 cmake ..
-cmake --build .
+cmake --build . --target ALL_BUILD --config Release
 
 
 
 :: Build assimp
 cd ..\..\assimp
-cmake -DBUILD_SHARED_LIBS=0 ..
-cmake --build .
+cmake CMakeLists.txt
+cmake --build . --target ALL_BUILD --config Release
