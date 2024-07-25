@@ -58,6 +58,9 @@ namespace Render
 
     void DrawOutlineEntity(Entity& entity, const Shader& defaultShader, const Shader& outlineShader, const glm::vec3& outlineColor, const Camera& camera, const glm::mat4& projection, float outlineFactor)
     {
+	if (!entity.IsVisible())
+	    return;
+
 	DrawEntity(entity, defaultShader, camera, projection);
 
 	defaultShader.Use();
@@ -76,6 +79,9 @@ namespace Render
 
     void DrawEntity(Entity& entity, const Shader& shader, const Camera& camera, const glm::mat4& projection)
     {
+	if (!entity.IsVisible())
+	    return;
+
 	shader.Use();
 
         shader.SetMat4("u_model", entity.Transform.GetTransformMatrix());
@@ -102,9 +108,6 @@ namespace Render
     void UpdateAndDrawEntity(Entity &entity, const Shader &shader, float deltaTime, const Camera &camera, const glm::mat4 &projection)
     {
         entity.Update(deltaTime);
-        if (!entity.IsVisible())
-            return;
-
 	DrawEntity(entity, shader, camera, projection); 
     }
 

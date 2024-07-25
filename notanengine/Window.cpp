@@ -87,7 +87,7 @@ void Window::Init()
     // enable stencil test
     glEnable(GL_STENCIL_TEST);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     // Initiate ImGui
     UIHelper::Init(m_glfwWindow);
@@ -177,8 +177,8 @@ void Window::MainLoop()
         lastFrame = currentFrame;
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClearStencil(0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glStencilMask(0x00);
 
         // start dear imgui frame
         UIHelper::NewFrame();
@@ -248,9 +248,7 @@ void Window::MainLoop()
         lightingShader.SetBool("u_useDirectionalLight", true);
         dirLight.SetLightUniforms(lightingShader);
 
-        /* Render::UpdateAndDrawEntityMap(entitiesMap, deltaTime, camera, projection); */
-
-	Render::UpdateAndDrawEntity(floor, basicShader, deltaTime, camera, projection);
+        Render::UpdateAndDrawEntityMap(entitiesMap, deltaTime, camera, projection);
 
 #define TEST_STENCIL_TEST 1
 #if TEST_STENCIL_TEST

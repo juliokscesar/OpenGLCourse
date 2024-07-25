@@ -55,29 +55,60 @@ namespace UIHelper
         ImGui::Begin("Entity Properties");
 
         unsigned int entityId = 0;
+	static Entity* selectedEntity = nullptr;
+	unsigned int selectedId = 0;
         for (auto& [name, tupleEntityShader] : entities)
         {
+	    const std::string entityButton = name + "##" + std::to_string(entityId);
             Entity& entity = std::get<0>(tupleEntityShader);
 
-            ImGui::Text("%s properties", name.c_str());
+	    if (ImGui::Button(entityButton.c_str()))
+	    {
+		selectedEntity = &entity;
+		selectedId = entityId;
+	    }
+	    ImGui::SameLine();
 
-            const std::string id = std::to_string(entityId);
+	    entityId++;
+        }
+
+	if (selectedEntity)
+	{
+            ImGui::Text("Properties");
+
+            const std::string id = std::to_string(selectedId);
             std::string labelId = std::string("Position##") + id;
-            ImGui::InputFloat3(labelId.c_str(), glm::value_ptr(entity.Transform.GetPositionRef()));
+            ImGui::InputFloat3(labelId.c_str(), glm::value_ptr(selectedEntity->Transform.GetPositionRef()));
 
             labelId = std::string("Rotation##") + id;
-            ImGui::InputFloat3(labelId.c_str(), glm::value_ptr(entity.Transform.GetRotationRef()));
+            ImGui::InputFloat3(labelId.c_str(), glm::value_ptr(selectedEntity->Transform.GetRotationRef()));
 
             labelId = std::string("Scale##") + id; 
-            ImGui::InputFloat3(labelId.c_str(), glm::value_ptr(entity.Transform.GetScaleRef()));
+            ImGui::InputFloat3(labelId.c_str(), glm::value_ptr(selectedEntity->Transform.GetScaleRef()));
 
-            bool visibility = entity.IsVisible();
+            bool visibility = selectedEntity->IsVisible();
             const std::string visibleLabel = std::string("Is visible##") + id;
             ImGui::Checkbox(visibleLabel.c_str(), &visibility);
-            entity.SetVisible(visibility);
+            selectedEntity->SetVisible(visibility);
 
-            entityId++;
-        }
+	    unsigned int materialId = 0;
+	    for (auto& mesh : selectedEntity->GetMeshRef().GetSubMeshesRef())
+	    {
+		if (!mesh.UseMaterial)
+		    continue;
+
+		ImGui::Text("Material %i properties", materialId);
+
+		const std::string id = std::to_string(materialId);
+		std::string label = "Shininess##" + id;
+		ImGui::SliderFloat(label.c_str(), &mesh.Mat.Shininess, 0.1f, 512.0f);
+
+		label = "Tiling Factor##" + id;
+		ImGui::SliderFloat(label.c_str(), &mesh.Mat.TilingFactor, 0.5f, 10.0f);
+
+		materialId++;
+	    }
+	}
 
         ImGui::End();
     }
