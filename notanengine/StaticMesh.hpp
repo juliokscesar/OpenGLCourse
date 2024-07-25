@@ -41,7 +41,7 @@ struct MeshData
 class StaticMesh
 {
 public:
-    StaticMesh() = default;
+    StaticMesh();
 
     StaticMesh(const std::vector<MeshData>& subMeshes);
 

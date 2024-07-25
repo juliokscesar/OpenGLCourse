@@ -97,7 +97,7 @@ set(SRC
     ${PROJECT_NAME}/Camera.cpp
     ${PROJECT_NAME}/UIHelper.cpp
     ${PROJECT_NAME}/Texture2D.cpp
-    ${PROJECT_NAME}/ModelFactory.cpp
+    ${PROJECT_NAME}/ResourceManager.cpp
     ${PROJECT_NAME}/StaticMesh.cpp
     ${PROJECT_NAME}/Entity.cpp
     ${PROJECT_NAME}/Light.cpp
@@ -115,7 +115,7 @@ if(MSVC)
         ${PROJECT_NAME}/Camera.hpp
         ${PROJECT_NAME}/UIHelper.hpp
         ${PROJECT_NAME}/Texture2D.hpp
-        ${PROJECT_NAME}/ModelFactory.hpp
+        ${PROJECT_NAME}/ResourceManager.hpp
         ${PROJECT_NAME}/StaticMesh.hpp
         ${PROJECT_NAME}/Entity.hpp
         ${PROJECT_NAME}/Light.hpp

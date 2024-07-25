@@ -1,5 +1,11 @@
 #include "Window.hpp"
 
+#include <unordered_map>
+#include <vector>
+#include <array>
+#include <iostream>
+#include <filesystem>
+
 #include <GLFW/glfw3.h>
 #include <stdexcept>
 
@@ -11,14 +17,13 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 
 #include <stb/stb_image.h>
-#include <unordered_map>
 
 #include "Shader.hpp"
 #include "Input.hpp"
 #include "Camera.hpp"
 #include "StaticMesh.hpp"
 #include "Entity.hpp"
-#include "ModelFactory.hpp"
+#include "ResourceManager.hpp"
 #include "UIHelper.hpp"
 #include "Light.hpp"
 
@@ -48,30 +53,31 @@ void updateAndDrawEntity(Entity& entity, const Shader& shader, float deltaTime, 
 
     for (auto& meshData : entity.GetMeshRef().GetSubMeshesRef())
     {
-	shader.SetBool("u_useMaterial", meshData.UseMaterial);
+        shader.SetBool("u_useMaterial", meshData.UseMaterial);
 
-	if (meshData.UseMaterial && meshData.Mat.DiffuseMaps.empty())
-	{
-	    shader.SetBool("u_useMaterial", false);
-	    meshData.UseMaterial = false;
-	}
+        if (meshData.UseMaterial && meshData.Mat.DiffuseMaps.empty())
+        {
+            shader.SetBool("u_useMaterial", false);
+            meshData.UseMaterial = false;
+        }
 
-	else if (meshData.UseMaterial)
-	    shader.SetMaterial("u_material", meshData.Mat);
+        else if (meshData.UseMaterial)
+            shader.SetMaterial("u_material", meshData.Mat);
 
-	glBindVertexArray(meshData.VAO);
-	glDrawElements(GL_TRIANGLES, meshData.NumIndices, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(meshData.VAO);
+        glDrawElements(GL_TRIANGLES, meshData.NumIndices, GL_UNSIGNED_INT, 0);
     }
 }
 
-void updateAndDrawEntities(const std::unordered_map<std::string, std::tuple<Entity&, const Shader&>>& entities, float deltaTime, const Camera& camera, const glm::mat4& projection)
+
+void updateAndDrawEntities(const EntityRenderMap& entities, float deltaTime, const Camera& camera, const glm::mat4& projection)
 {
     for (auto& [name, tupleEntityShader] : entities)
     {
-	Entity& entity = std::get<0>(tupleEntityShader);
-	const Shader& shader = std::get<1>(tupleEntityShader);
+        Entity& entity = std::get<0>(tupleEntityShader);
+        const Shader& shader = std::get<1>(tupleEntityShader);
 
-	updateAndDrawEntity(entity, shader, deltaTime, camera, projection);
+        updateAndDrawEntity(entity, shader, deltaTime, camera, projection);
     }
 }
 
@@ -87,9 +93,6 @@ void Window::Init()
     
     // set to focus when window opens
     glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_TRUE);
-
-    // maximize window on create
-    glfwWindowHint(GLFW_MAXIMIZED, GL_TRUE);
 
     m_glfwWindow = glfwCreateWindow(m_width, m_height, m_title.c_str(), nullptr, nullptr);
     if (!m_glfwWindow)
@@ -129,24 +132,14 @@ void Window::Init()
     // Initiate ImGui
     UIHelper::Init(m_glfwWindow);
 
+    // Get assets locations
+    ResourceManager::InitializeLocations();
+
     stbi_set_flip_vertically_on_load(true);
 }
 
 void Window::MainLoop()
 {
-    // ObjectLoader::Model backpackModel = ObjectLoader::LoadModel("models/backpack/backpack.obj");
-    // Entity backpackEntity(backpackModel.Mesh);
-    // backpackEntity.Transform.Scale(0.2f);
-
-
-    stbi_set_flip_vertically_on_load(false);
-
-    // Entity sponzaEntity(ObjectLoader::LoadModel("models/Sponza/sponza.obj").Mesh);
-    // sponzaEntity.Transform.Scale(0.01f);
-
-    stbi_set_flip_vertically_on_load(true);
-
-
 
 
     Camera camera;
@@ -162,14 +155,21 @@ void Window::MainLoop()
     );
 
     
-    Shader basicShader("shaders/basic_shader.vert", "shaders/basic_shader.frag");
-    Shader lightingShader("shaders/objfile_shaders/entity_lighting.vert", "shaders/objfile_shaders/entity_lighting.frag");
+    Shader basicShader = ResourceManager::LoadShader("shaders/basic_shader.vert", "shaders/basic_shader.frag");
+    Shader lightingShader = ResourceManager::LoadShader("shaders/objfile_shaders/entity_lighting.vert", "shaders/objfile_shaders/entity_lighting.frag");
 
-    
-    std::unordered_map<std::string, std::tuple<Entity&, const Shader&>> entitiesNamesMap = {
-	//{"Backpack", {backpackEntity, basicShader}},
-	//{"Sponza", {sponzaEntity, basicShader}},
+
+    Entity sniper(ResourceManager::LoadModel("models\\Sniper_Ammo FBX\\Sniper_AmmoTexture-Packed.fbx").Mesh);
+
+    stbi_set_flip_vertically_on_load(true);
+    Entity sponza(ResourceManager::LoadModel("models\\Sponza\\sponza.obj").Mesh);
+    sponza.Transform.Scale(0.1f);
+
+    EntityRenderMap entitiesMap = {
+        { "Sniper", { sniper, basicShader } },
+        { "Sponza", { sponza, basicShader } },
     };
+    
 
 
     DirectionalLight dirLight;
@@ -206,9 +206,9 @@ void Window::MainLoop()
 
         UIHelper::FrameStatsWindow(deltaTime);
 	
-	UIHelper::EntityPropertiesManager(entitiesNamesMap);
+        UIHelper::EntityPropertiesManager(entitiesMap);
 
-	UIHelper::DirectionalLightPropertiesManager(dirLight);
+        UIHelper::DirectionalLightPropertiesManager(dirLight);
 
         if (g_bResized)
             this->updateWindowProperties();
@@ -259,16 +259,16 @@ void Window::MainLoop()
             pFar
         );
 
-	spotLight.Position = camera.Transform.GetPosition();
-	spotLight.Direction = camera.GetFrontVector();
-	
-	lightingShader.SetVec3("u_viewPos", camera.Transform.GetPosition());
+        spotLight.Position = camera.Transform.GetPosition();
+        spotLight.Direction = camera.GetFrontVector();
+        
+        lightingShader.SetVec3("u_viewPos", camera.Transform.GetPosition());
 
-	lightingShader.SetBool("u_useDirectionalLight", true);
-	dirLight.SetLightUniforms(lightingShader);
+        lightingShader.SetBool("u_useDirectionalLight", true);
+        dirLight.SetLightUniforms(lightingShader);
 
 
-	updateAndDrawEntities(entitiesNamesMap, deltaTime, camera, projection);
+        updateAndDrawEntities(entitiesMap, deltaTime, camera, projection);
 
 
 	UIHelper::Render();

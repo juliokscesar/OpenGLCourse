@@ -13,6 +13,8 @@
 #include "Entity.hpp"
 #include "Light.hpp"
 
+typedef std::unordered_map<std::string, std::tuple<Entity&, const Shader&>> EntityRenderMap;
+
 namespace UIHelper
 {
     void Init(GLFWwindow* glfwWindow);
@@ -22,7 +24,7 @@ namespace UIHelper
 
     void FrameStatsWindow(float deltaTime);
 
-    void EntityPropertiesManager(const std::unordered_map<std::string, std::tuple<Entity&, const Shader&>>& entities);
+    void EntityPropertiesManager(const EntityRenderMap& entities);
 
     void DirectionalLightPropertiesManager(DirectionalLight& dirLight);
 }

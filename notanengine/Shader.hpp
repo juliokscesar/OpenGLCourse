@@ -12,6 +12,7 @@ public:
         : ID(0), m_vertexID(0), m_fragID(0) {}
 
     Shader(const std::string& vertexPath, const std::string& fragmentPath);
+    Shader(const char* vertexCode, const char* fragCode);
 
     Shader(const Shader& other);
 

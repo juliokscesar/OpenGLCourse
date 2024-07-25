@@ -1,5 +1,10 @@
 #include "Entity.hpp"
 
+Entity::Entity()
+    : m_mesh()
+{
+}
+
 Entity::Entity(const StaticMesh& mesh)
     : m_mesh(mesh)
 {

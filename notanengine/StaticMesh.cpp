@@ -137,6 +137,9 @@ MeshData::MeshData(const std::vector<Vertex>& vertices, const std::vector<unsign
     glEnableVertexAttribArray(2);
 }
 
+StaticMesh::StaticMesh()
+{
+}
 
 StaticMesh::StaticMesh(const std::vector<MeshData>& subMeshes)
     : m_meshData(subMeshes)
