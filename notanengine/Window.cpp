@@ -203,6 +203,8 @@ void Window::MainLoop()
 
         UIHelper::DirectionalLightPropertiesManager(dirLight);
 
+        UIHelper::CameraAndProjectionPropertiesManager(camera, pNear, pFar);
+
         if (g_bResized)
             this->updateWindowProperties();
 

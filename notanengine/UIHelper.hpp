@@ -12,6 +12,8 @@
 
 #include "Entity.hpp"
 #include "Light.hpp"
+#include "Camera.hpp"
+
 
 typedef std::unordered_map<std::string, std::tuple<Entity&, const Shader&>> EntityRenderMap;
 
@@ -27,4 +29,6 @@ namespace UIHelper
     void EntityPropertiesManager(const EntityRenderMap& entities);
 
     void DirectionalLightPropertiesManager(DirectionalLight& dirLight);
+
+    void CameraAndProjectionPropertiesManager(Camera& camera, float& pNear, float& pFar);
 }

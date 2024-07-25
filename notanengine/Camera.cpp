@@ -58,11 +58,11 @@ void Camera::Update(float deltaTime)
     if (scroll)
         FOV -= scroll; // subtract because otherwise the scrolling is inverted
     
-    // Clamp FOV to 1.0 and 45.0
+    // Clamp FOV to 1.0 and 180.0
     if (FOV < 1.0f)
         FOV = 1.0f;
-    else if (FOV > 45.0f)
-        FOV = 45.0f;
+    else if (FOV > 180.0f)
+        FOV = 180.0f;
 }
 
 glm::mat4 Camera::GetLookAtMatrix() const noexcept
