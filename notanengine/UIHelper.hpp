@@ -13,9 +13,7 @@
 #include "Entity.hpp"
 #include "Light.hpp"
 #include "Camera.hpp"
-
-
-typedef std::unordered_map<std::string, std::tuple<Entity&, const Shader&>> EntityRenderMap;
+#include "Render.hpp"
 
 namespace UIHelper
 {

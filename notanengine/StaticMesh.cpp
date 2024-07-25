@@ -1,6 +1,37 @@
 #include "StaticMesh.hpp"
 #include <cstddef>
 
+MeshData::MeshData(const std::vector<float>& verticesData, const std::vector<VertexAttribProperties>& vertexAttribs)
+{
+    UseIndexedDrawing = false;
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+
+    /// VBO SETUP
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    NumIndices = verticesData.size();
+    const size_t vboSize = verticesData.size() * sizeof(float);
+    glBufferData(GL_ARRAY_BUFFER, vboSize, verticesData.data(), GL_STATIC_DRAW);
+
+    /// Vertex Attributes
+    for (const auto& attrib : vertexAttribs)
+    {
+        glVertexAttribPointer(
+            attrib.Location,
+            attrib.NumValues,
+            GL_FLOAT,
+            GL_FALSE,
+            attrib.Stride,
+            (void*)(attrib.Offset)
+        );
+        glEnableVertexAttribArray(attrib.Location);
+    }
+}
+
 
 MeshData::MeshData(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs)
 {
@@ -146,6 +177,11 @@ StaticMesh::StaticMesh(const std::vector<MeshData>& subMeshes)
 {
 }
 
+StaticMesh::StaticMesh(const std::vector<float>& verticesData, const std::vector<VertexAttribProperties>& vertexAttribs)
+{
+    MeshData mesh(verticesData, vertexAttribs);
+    m_meshData.push_back(mesh);
+}
 
 StaticMesh::StaticMesh(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs)
 {
@@ -169,15 +205,125 @@ StaticMesh::StaticMesh(StaticMesh&& other)
 {
 }
 
+void StaticMesh::SetMaterial(const Material& mat)
+{
+    for (auto& mesh : m_meshData)
+    {
+        mesh.UseMaterial = true;
+        mesh.Mat = mat;
+    }
+}
+
 void StaticMesh::Draw() const noexcept
 {
     for (const auto& mesh : m_meshData)
     {
-	glBindVertexArray(mesh.VAO);
-	
-	glDrawElements(GL_TRIANGLES, mesh.NumIndices, GL_UNSIGNED_INT, 0);
+	    glBindVertexArray(mesh.VAO);
+        if (mesh.UseIndexedDrawing)
+	        glDrawElements(GL_TRIANGLES, mesh.NumIndices, GL_UNSIGNED_INT, 0);
+        else
+            glDrawArrays(GL_TRIANGLES, 0, mesh.NumIndices);
     }
 }
 
 
+StaticMesh SimpleMeshFactory::Cube()
+{
+    static bool created = false;
+    static StaticMesh cubeMesh;
 
+    if (created)
+        return cubeMesh;
+
+    std::vector<float> verticesData = {
+        // positions            // normals         // tex coords
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
+    };
+
+    const size_t attribStride = 8 * sizeof(float);
+
+    std::vector<VertexAttribProperties> vertexAttribs = {
+        { 0, 3, attribStride, 0 },
+        { 1, 3, attribStride, 3*sizeof(float) },
+        { 2, 2, attribStride, 6*sizeof(float) }
+    };
+
+    cubeMesh = StaticMesh(verticesData, vertexAttribs);
+    created = true;
+    return cubeMesh;
+}
+
+
+StaticMesh SimpleMeshFactory::Plane()
+{
+    static bool created = false;
+    static StaticMesh plane;
+
+    if (created)
+        return plane;
+
+    std::vector<float> verticesData = {
+        // positions        // normals          // texcoords
+        -0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
+         0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
+         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f
+    };
+
+    std::vector<unsigned int> indices = {
+        0, 1, 2,
+        2, 0, 3
+    };
+
+    const size_t attribStride = 8 * sizeof(float);
+
+    std::vector<VertexAttribProperties> vertexAttribs = {
+        { 0, 3, attribStride, 0 },
+        { 1, 3, attribStride, 3*sizeof(float) },
+        { 2, 2, attribStride, 6*sizeof(float) }
+    };
+
+    plane = StaticMesh(verticesData, indices, vertexAttribs);
+    created = true;
+    return plane;
+}

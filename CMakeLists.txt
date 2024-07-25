@@ -101,6 +101,7 @@ set(SRC
     ${PROJECT_NAME}/StaticMesh.cpp
     ${PROJECT_NAME}/Entity.cpp
     ${PROJECT_NAME}/Light.cpp
+    ${PROJECT_NAME}/Render.cpp
 )
 
 include_directories(${INCLUDE_DIRS})
@@ -119,6 +120,7 @@ if(MSVC)
         ${PROJECT_NAME}/StaticMesh.hpp
         ${PROJECT_NAME}/Entity.hpp
         ${PROJECT_NAME}/Light.hpp
+        ${PROJECT_NAME}/Render.hpp
     )
 
     add_executable(notanengine ${SRC} ${HEADER_FILES})

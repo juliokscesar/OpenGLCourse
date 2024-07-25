@@ -26,6 +26,7 @@ struct VertexAttribProperties
 
 struct MeshData
 {
+    MeshData(const std::vector<float>& verticesData, const std::vector<VertexAttribProperties>& vertexAttribs);
     MeshData(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs);
     MeshData(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs, const Material& mat);
     MeshData(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const Material& material);
@@ -34,6 +35,7 @@ struct MeshData
     unsigned int VBO = 0;
     unsigned int EBO = 0;
     unsigned int NumIndices = 0;
+    bool UseIndexedDrawing = true;
     Material Mat;
     bool UseMaterial = true;
 };
@@ -44,7 +46,8 @@ public:
     StaticMesh();
 
     StaticMesh(const std::vector<MeshData>& subMeshes);
-
+    
+    StaticMesh(const std::vector<float>& verticesData, const std::vector<VertexAttribProperties>& vertexAttribs);
     StaticMesh(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs);
     StaticMesh(const std::vector<float>& vertexPositions, const std::vector<unsigned int>& indices, const std::vector<VertexAttribProperties>& vertexAttribs, const Material& mat);
 
@@ -53,25 +56,27 @@ public:
 
     StaticMesh& operator=(const StaticMesh& other)
     {
-	if (this != &other)
-	{
-	    m_meshData = other.m_meshData;
-	}
+        if (this != &other)
+        {
+            m_meshData = other.m_meshData;
+        }
 
-	return *this;
+        return *this;
     }
 
     StaticMesh& operator=(StaticMesh&& other)
     {
-	if (this != &other)
-	{
-	    m_meshData = std::move(other.m_meshData);
-	}
+        if (this != &other)
+        {
+            m_meshData = std::move(other.m_meshData);
+        }
 
-	return *this;
+        return *this;
     }
 
     inline std::vector<MeshData>& GetSubMeshesRef() noexcept { return m_meshData; }
+
+    void SetMaterial(const Material& mat);
 
     void Draw() const noexcept;
 
@@ -79,3 +84,8 @@ private:
     std::vector<MeshData> m_meshData;
 };
 
+namespace SimpleMeshFactory
+{
+    StaticMesh Cube();
+    StaticMesh Plane();
+}

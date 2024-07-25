@@ -20,6 +20,7 @@
 #include "StaticMesh.hpp"
 #include "Entity.hpp"
 #include "ResourceManager.hpp"
+#include "Render.hpp"
 #include "UIHelper.hpp"
 #include "Light.hpp"
 
@@ -34,48 +35,6 @@ void framebufferResizeCallback(GLFWwindow* window, int width, int height)
     g_updatedProperties.newHeight = height;
 }
 
-
-void updateAndDrawEntity(Entity& entity, const Shader& shader, float deltaTime, const Camera& camera, const glm::mat4& projection)
-{
-    entity.Update(deltaTime);
-    if (!entity.IsVisible())
-	return;
-
-    shader.Use();
-
-    shader.SetMat4("u_model", entity.Transform.GetTransformMatrix());
-    shader.SetMat4("u_view", camera.GetLookAtMatrix());
-    shader.SetMat4("u_projection", projection);
-
-    for (auto& meshData : entity.GetMeshRef().GetSubMeshesRef())
-    {
-        shader.SetBool("u_useMaterial", meshData.UseMaterial);
-
-        if (meshData.UseMaterial && meshData.Mat.DiffuseMaps.empty())
-        {
-            shader.SetBool("u_useMaterial", false);
-            meshData.UseMaterial = false;
-        }
-
-        else if (meshData.UseMaterial)
-            shader.SetMaterial("u_material", meshData.Mat);
-
-        glBindVertexArray(meshData.VAO);
-        glDrawElements(GL_TRIANGLES, meshData.NumIndices, GL_UNSIGNED_INT, 0);
-    }
-}
-
-
-void updateAndDrawEntities(const EntityRenderMap& entities, float deltaTime, const Camera& camera, const glm::mat4& projection)
-{
-    for (auto& [name, tupleEntityShader] : entities)
-    {
-        Entity& entity = std::get<0>(tupleEntityShader);
-        const Shader& shader = std::get<1>(tupleEntityShader);
-
-        updateAndDrawEntity(entity, shader, deltaTime, camera, projection);
-    }
-}
 
 void Window::Init()
 {
@@ -157,10 +116,16 @@ void Window::MainLoop()
 
     stbi_set_flip_vertically_on_load(false);
     Entity sponza(ResourceManager::LoadModel("models/Sponza/sponza.obj").Mesh);
-    sponza.Transform.Scale(0.1f);
+    sponza.Transform.Scale(0.01f);
+
+    Entity cube(SimpleMeshFactory::Cube());
+    Material cubeMaterial;
+    cubeMaterial.DiffuseMaps.push_back(ResourceManager::LoadTextureFromFile("textures/container.jpg"));
+    cube.GetMeshRef().SetMaterial(cubeMaterial);
 
     EntityRenderMap entitiesMap = {
         { "Sponza", { sponza, basicShader } },
+        { "Cube", { cube, basicShader } }
     };
     
 
@@ -263,10 +228,9 @@ void Window::MainLoop()
         dirLight.SetLightUniforms(lightingShader);
 
 
-        updateAndDrawEntities(entitiesMap, deltaTime, camera, projection);
+        Render::UpdateAndDrawEntityMap(entitiesMap, deltaTime, camera, projection);
 
-
-	UIHelper::Render();
+	    UIHelper::Render();
 
         glfwSwapBuffers(m_glfwWindow);
         glfwPollEvents();
